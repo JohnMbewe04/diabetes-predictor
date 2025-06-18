@@ -3,7 +3,7 @@ import numpy as np
 import joblib
 
 # Load model
-model = joblib.load("diabetesmodel.pkl")
+model = joblib.load("Diabetesmodel.pkl")
 
 st.set_page_config(page_title="Diabetes Risk Predictor", layout="centered")
 st.title("🩺 Diabetes Risk Predictor")
