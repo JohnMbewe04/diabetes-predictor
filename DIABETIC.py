@@ -49,7 +49,7 @@ if st.session_state.page == "predict":
 
         if prediction == 1:
             st.session_state.page = "report"
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.success("Prediction: Not Diabetic")
             st.info(f"Confidence: {st.session_state.confidence}%")
@@ -111,4 +111,4 @@ elif st.session_state.page == "report":
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "predict"
-        st.experimental_rerun()
+        st.rerun()
