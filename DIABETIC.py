@@ -63,7 +63,7 @@ if st.session_state.page == "Predict":
         with col1:
             if st.button("🧾 View Report"):
                 st.session_state.page = "Report"
-                st.experimental_rerun()
+                st.rerun()
         with col2:
             if st.button("📍 Find Nearby Clinics"):
                 st.write("Redirecting you to Google Maps for nearby clinics...")
@@ -138,4 +138,4 @@ elif st.session_state.page == "Report":
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "Predict"
-        st.experimental_rerun()
+        st.rerun()
