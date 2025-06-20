@@ -4,6 +4,7 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import shap
 
 # Load model and dataset
 model = joblib.load("diabetes_model_clean.pkl")
@@ -11,7 +12,7 @@ data = pd.read_csv("diabetes.csv")
 
 st.set_page_config(page_title="Diabetes App", layout="centered")
 
-# Session state initialization
+# Session state
 if "page" not in st.session_state:
     st.session_state.page = "predict"
 if "prediction" not in st.session_state:
@@ -26,7 +27,6 @@ if st.session_state.page == "predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    # Inputs
     glucose = st.number_input("Glucose", 0, 200, 100)
     bp = st.number_input("Blood Pressure", 40, 140, 80)
     bmi = st.number_input("BMI", 10.0, 50.0, 25.0)
@@ -37,7 +37,6 @@ if st.session_state.page == "predict":
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
 
-        # Save to session
         st.session_state.prediction = prediction
         st.session_state.confidence = round(confidence * 100, 2)
         st.session_state.inputs = {
@@ -47,12 +46,14 @@ if st.session_state.page == "predict":
             "Age": age
         }
 
-        if prediction == 1:
+        result = "Diabetic" if prediction == 1 else "Not Diabetic"
+        st.success(f"Prediction: {result}")
+        st.info(f"Confidence: {st.session_state.confidence}%")
+
+    if st.session_state.prediction is not None:
+        if st.button("🧾 View Report"):
             st.session_state.page = "report"
             st.rerun()
-        else:
-            st.success("Prediction: Not Diabetic")
-            st.info(f"Confidence: {st.session_state.confidence}%")
 
 # ---------------------------
 # Page 2: Report Page
@@ -77,7 +78,6 @@ elif st.session_state.page == "report":
             unsafe_allow_html=True
         )
 
-    # 📉 Visualizations
     st.subheader("📈 Distribution Comparison")
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
     axs = axs.flatten()
@@ -91,7 +91,6 @@ elif st.session_state.page == "report":
 
     st.pyplot(fig)
 
-    # 💡 Health Tips
     st.subheader("💡 Suggestions to Improve Your Health")
     tips = []
     if user_data["Glucose"] > 125:
@@ -108,6 +107,22 @@ elif st.session_state.page == "report":
             st.markdown(tip)
     else:
         st.success("👍 All your values are within the healthy range!")
+
+    st.subheader("🔬 Model Explanation (SHAP)")
+    try:
+        explainer = shap.Explainer(model, data[features])
+        input_df = pd.DataFrame([user_data])
+        shap_values = explainer(input_df)
+
+        st.markdown("How the model made its decision:")
+
+        # Waterfall plot
+        plt.figure(figsize=(10, 3))
+        shap.plots.waterfall(shap_values[0], show=False)
+        st.pyplot(plt.gcf())
+
+    except Exception as e:
+        st.error(f"SHAP explanation failed: {e}")
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "predict"
