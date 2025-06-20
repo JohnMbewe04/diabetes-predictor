@@ -4,7 +4,6 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-import webbrowser
 
 # Load model and dataset
 model = joblib.load("diabetes_model_clean.pkl")
@@ -20,11 +19,11 @@ if "prediction" not in st.session_state:
     st.session_state.inputs = {}
     st.session_state.confidence = None
 
+# Sidebar navigation
 selected_page = st.sidebar.radio("Navigation", ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
 if selected_page != st.session_state.page:
     st.session_state.page = selected_page
     st.rerun()
-
 
 # ---------------------------
 # Page 1: Prediction
@@ -63,7 +62,8 @@ if st.session_state.page == "Predict":
                 st.session_state.page = "Report"
                 st.rerun()
         with col2:
-            if st.button("📍 Find Nearby Clinics"):
+            # ✅ Only show if user is predicted as diabetic
+            if st.session_state.prediction == 1:
                 st.markdown("[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)", unsafe_allow_html=True)
 
 # ---------------------------
