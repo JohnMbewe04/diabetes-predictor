@@ -21,12 +21,13 @@ if st.button("Predict"):
     prediction = model.predict(input_data)[0]
 
     if hasattr(model, "predict_proba"):
-        prob = model.predict_proba(input_data)[0][1]
+        proba = model.predict_proba(input_data)[0]
+        confidence = proba[prediction]
     else:
-        prob = 0.5
+        confidence = 0.5
 
     result_text = "Diabetic" if prediction == 1 else "Not Diabetic"
-    confidence = round(prob * 100, 2)
+    confidence_percent = round(confidence * 100, 2)
 
     st.success(f"Prediction: **{result_text}**")
-    st.info(f"Confidence: **{confidence}%**")
+    st.info(f"Confidence: **{confidence_percent}%**")
