@@ -32,12 +32,11 @@ if st.session_state.page == "predict":
     bmi = st.number_input("BMI", 10.0, 50.0, 25.0)
     age = st.number_input("Age", 0, 100, 30)
 
-
     if st.button("🔍 Predict"):
         input_data = np.array([[glucose, bp, bmi, age]])
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
-    
+
         # Save to session
         st.session_state.prediction = prediction
         st.session_state.confidence = round(confidence * 100, 2)
@@ -47,15 +46,13 @@ if st.session_state.page == "predict":
             "BMI": bmi,
             "Age": age
         }
-    
-        # Directly switch to report page if prediction is diabetic
-    if prediction == 1:
-        st.session_state.page = "report"
-        st.experimental_rerun()
-    else:
-        result = "Not Diabetic"
-        st.success(f"Prediction: {result}")
-        st.info(f"Confidence: {st.session_state.confidence}%")
+
+        if prediction == 1:
+            st.session_state.page = "report"
+            st.experimental_rerun()
+        else:
+            st.success("Prediction: Not Diabetic")
+            st.info(f"Confidence: {st.session_state.confidence}%")
 
 # ---------------------------
 # Page 2: Report Page
