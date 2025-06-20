@@ -4,10 +4,14 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import webbrowser
+
 # Load model and dataset
 model = joblib.load("diabetes_model_clean.pkl")
 data = pd.read_csv("diabetes.csv")
+
 st.set_page_config(page_title="Diabetes App", layout="centered")
+
 # Session state
 if "page" not in st.session_state:
     st.session_state.page = "predict"
@@ -15,6 +19,12 @@ if "prediction" not in st.session_state:
     st.session_state.prediction = None
     st.session_state.inputs = {}
     st.session_state.confidence = None
+
+# Sidebar navigation
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Predict", "Report", "What-if Analysis"])
+st.session_state.page = page
+
 # ---------------------------
 # Page 1: Prediction Page
 # ---------------------------
@@ -44,6 +54,10 @@ if st.session_state.page == "predict":
         if st.button("🧾 View Report"):
             st.session_state.page = "report"
             st.rerun()
+        if st.button("📍 Find Nearby Clinics"):
+            st.write("Redirecting you to Google Maps for nearby clinics...")
+            webbrowser.open("https://www.google.com/maps/search/diabetes+clinic+near+me")
+
 # ---------------------------
 # Page 2: Report Page
 # ---------------------------
