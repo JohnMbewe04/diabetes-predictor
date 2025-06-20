@@ -4,7 +4,6 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-import shap
 
 # Load model and dataset
 model = joblib.load("diabetes_model_clean.pkl")
@@ -78,18 +77,31 @@ elif st.session_state.page == "report":
             unsafe_allow_html=True
         )
 
+    # 📉 Visualizations
     st.subheader("📈 Distribution Comparison")
-    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
+    
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     axs = axs.flatten()
-
+    features = ["Glucose", "BloodPressure", "BMI", "Age"]
+    
     for i, feature in enumerate(features):
-        sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic", color="red", ax=axs[i], kde=True)
-        sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic", color="green", ax=axs[i], kde=True)
-        axs[i].axvline(user_data[feature], color="blue", linestyle="--", label="Your Value")
-        axs[i].set_title(feature)
-        axs[i].legend()
-
+        ax = axs[i]
+        sns.histplot(data[data["Outcome"] == 1][feature], 
+                     label="Diabetic", color="red", ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 0][feature], 
+                     label="Non-Diabetic", color="green", ax=ax, kde=True, stat="count", alpha=0.5)
+    
+        ax.axvline(user_data[feature], color="blue", linestyle="--", label="Your Value")
+        ax.set_title(f"{feature}", fontsize=14)
+        ax.set_xlabel(feature, fontsize=12)
+        ax.set_ylabel("Count", fontsize=12)
+        ax.tick_params(axis='x', labelsize=10)
+        ax.tick_params(axis='y', labelsize=10)
+        ax.legend(fontsize=10, loc='upper right')
+    
+    plt.tight_layout()
     st.pyplot(fig)
+
 
     st.subheader("💡 Suggestions to Improve Your Health")
     tips = []
@@ -108,29 +120,6 @@ elif st.session_state.page == "report":
     else:
         st.success("👍 All your values are within the healthy range!")
 
-    st.subheader("🔬 Model Explanation (SHAP)")
-
-    try:
-        # SHAP for non-tree models like KNN
-        background = shap.kmeans(data[features], 10)  # summary for performance
-        explainer = shap.KernelExplainer(model.predict_proba, background)
-        input_df = pd.DataFrame([user_data])
-        shap_values = explainer.shap_values(input_df, nsamples=100)
-    
-        st.markdown("How the model made its decision:")
-    
-        # Waterfall only for binary classification (class 1 = diabetic)
-        plt.figure(figsize=(10, 3))
-        shap.plots._waterfall.waterfall_legacy(
-            shap.Explanation(values=shap_values[1][0],
-                             base_values=explainer.expected_value[1],
-                             data=input_df.iloc[0],
-                             feature_names=features)
-        )
-        st.pyplot(plt.gcf())
-
-    except Exception as e:
-        st.error(f"SHAP explanation failed: {e}")
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "predict"
