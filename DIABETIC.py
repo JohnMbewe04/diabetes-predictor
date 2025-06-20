@@ -109,17 +109,29 @@ elif st.session_state.page == "report":
         st.success("👍 All your values are within the healthy range!")
 
     st.subheader("🔬 Model Explanation (SHAP)")
+
     try:
-        explainer = shap.Explainer(model, data[features])
+        # SHAP for non-tree models like KNN
+        background = shap.kmeans(data[features], 10)  # summary for performance
+        explainer = shap.KernelExplainer(model.predict_proba, background)
         input_df = pd.DataFrame([user_data])
-        shap_values = explainer(input_df)
-
+        shap_values = explainer.shap_values(input_df, nsamples=100)
+    
         st.markdown("How the model made its decision:")
-
-        # Waterfall plot
+    
+        # Waterfall only for binary classification (class 1 = diabetic)
         plt.figure(figsize=(10, 3))
-        shap.plots.waterfall(shap_values[0], show=False)
+        shap.plots._waterfall.waterfall_legacy(
+            shap.Explanation(values=shap_values[1][0],
+                             base_values=explainer.expected_value[1],
+                             data=input_df.iloc[0],
+                             feature_names=features)
+        )
         st.pyplot(plt.gcf())
+
+except Exception as e:
+    st.error(f"SHAP explanation failed: {e}")
+
 
     except Exception as e:
         st.error(f"SHAP explanation failed: {e}")
