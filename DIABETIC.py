@@ -19,11 +19,16 @@ if "prediction" not in st.session_state:
     st.session_state.prediction = None
     st.session_state.inputs = {}
     st.session_state.confidence = None
+if "navigation_set_by_sidebar" not in st.session_state:
+    st.session_state.navigation_set_by_sidebar = True
 
-# Sidebar navigation
-#st.sidebar.title("Navigation")
-#page = st.sidebar.radio("Go to", ["Predict", "Report"])
-#st.session_state.page = page
+# Sidebar navigation (safe fix)
+st.sidebar.title("Navigation")
+selected_page = st.sidebar.radio("Go to", ["Predict", "Report"])
+
+# Only update page from sidebar if not navigating via buttons
+if st.session_state.navigation_set_by_sidebar:
+    st.session_state.page = selected_page
 
 # ---------------------------
 # Page 1: Prediction Page
@@ -31,14 +36,17 @@ if "prediction" not in st.session_state:
 if st.session_state.page == "predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
+
     glucose = st.number_input("Glucose", 0, 200, 100)
     bp = st.number_input("Blood Pressure", 40, 140, 80)
     bmi = st.number_input("BMI", 10.0, 50.0, 25.0)
     age = st.number_input("Age", 0, 100, 30)
+
     if st.button("🔍 Predict"):
         input_data = np.array([[glucose, bp, bmi, age]])
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
+
         st.session_state.prediction = prediction
         st.session_state.confidence = round(confidence * 100, 2)
         st.session_state.inputs = {
@@ -47,13 +55,17 @@ if st.session_state.page == "predict":
             "BMI": bmi,
             "Age": age
         }
+
         result = "Diabetic" if prediction == 1 else "Not Diabetic"
         st.success(f"Prediction: {result}")
         st.info(f"Confidence: {st.session_state.confidence}%")
+
     if st.session_state.prediction is not None:
         if st.button("🧾 View Report"):
             st.session_state.page = "report"
+            st.session_state.navigation_set_by_sidebar = False
             st.rerun()
+
         if st.button("📍 Find Nearby Clinics"):
             st.write("Redirecting you to Google Maps for nearby clinics...")
             webbrowser.open("https://www.google.com/maps/search/diabetes+clinic+near+me")
@@ -65,12 +77,10 @@ elif st.session_state.page == "report":
     st.title("🧾 Diabetes Report")
     user_data = st.session_state.inputs
     features = ["Glucose", "BloodPressure", "BMI", "Age"]
-    # ✅ Colorblind toggle
+
     colorblind_mode = st.checkbox("♿ Enable colorblind-friendly palette", value=False)
     if colorblind_mode:
         st.caption("🎨 Using colorblind-safe colors for the graphs.")
-    # Colors based on toggle
-    if colorblind_mode:
         diabetic_color = "#E69F00"       # Orange
         non_diabetic_color = "#56B4E9"   # Blue
         user_color = "#009E73"           # Green
@@ -78,6 +88,7 @@ elif st.session_state.page == "report":
         diabetic_color = "red"
         non_diabetic_color = "green"
         user_color = "blue"
+
     st.subheader("📌 Feature Comparison to Diabetic Averages")
     diabetic_avg = data[data["Outcome"] == 1][features].mean()
     for feature in features:
@@ -90,15 +101,15 @@ elif st.session_state.page == "report":
             f"<span style='color:{color}'>{'High' if delta > 0 else 'Low'}</span>",
             unsafe_allow_html=True
         )
-    # 📉 Visualizations
+
     st.subheader("📈 Distribution Comparison")
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     axs = axs.flatten()
     for i, feature in enumerate(features):
         ax = axs[i]
-        sns.histplot(data[data["Outcome"] == 1][feature], 
+        sns.histplot(data[data["Outcome"] == 1][feature],
                      label="Diabetic", color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
-        sns.histplot(data[data["Outcome"] == 0][feature], 
+        sns.histplot(data[data["Outcome"] == 0][feature],
                      label="Non-Diabetic", color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
         ax.axvline(user_data[feature], color=user_color, linestyle="--", label="Your Value")
         ax.set_title(f"{feature}", fontsize=14)
@@ -109,7 +120,7 @@ elif st.session_state.page == "report":
         ax.legend(fontsize=10, loc='upper right')
     plt.tight_layout()
     st.pyplot(fig)
-    # 💡 Health Suggestions
+
     st.subheader("💡 Suggestions to Improve Your Health")
     tips = []
     if user_data["Glucose"] > 125:
@@ -125,6 +136,8 @@ elif st.session_state.page == "report":
             st.markdown(tip)
     else:
         st.success("👍 All your values are within the healthy range!")
+
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "predict"
+        st.session_state.navigation_set_by_sidebar = False
         st.rerun()
