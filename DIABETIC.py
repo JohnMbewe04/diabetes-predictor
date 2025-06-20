@@ -12,28 +12,26 @@ data = pd.read_csv("diabetes.csv")
 
 st.set_page_config(page_title="Diabetes App", layout="centered")
 
-# Session state
+# Initialize session state
 if "page" not in st.session_state:
-    st.session_state.page = "predict"
+    st.session_state.page = "Predict"
 if "prediction" not in st.session_state:
     st.session_state.prediction = None
     st.session_state.inputs = {}
     st.session_state.confidence = None
-if "navigation_set_by_sidebar" not in st.session_state:
-    st.session_state.navigation_set_by_sidebar = True
 
-# Sidebar navigation (safe fix)
-st.sidebar.title("Navigation")
-selected_page = st.sidebar.radio("Go to", ["Predict", "Report"])
+# Sidebar navigation (safe method)
+selected_page = st.sidebar.radio("Navigation", ["Predict", "Report"])
+manual_nav = st.session_state.page != selected_page
 
-# Only update page from sidebar if not navigating via buttons
-if st.session_state.navigation_set_by_sidebar:
+# Only update state if user hasn't already switched page via button
+if manual_nav:
     st.session_state.page = selected_page
 
 # ---------------------------
-# Page 1: Prediction Page
+# Page 1: Prediction
 # ---------------------------
-if st.session_state.page == "predict":
+if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
@@ -61,19 +59,20 @@ if st.session_state.page == "predict":
         st.info(f"Confidence: {st.session_state.confidence}%")
 
     if st.session_state.prediction is not None:
-        if st.button("🧾 View Report"):
-            st.session_state.page = "report"
-            st.session_state.navigation_set_by_sidebar = False
-            st.rerun()
-
-        if st.button("📍 Find Nearby Clinics"):
-            st.write("Redirecting you to Google Maps for nearby clinics...")
-            webbrowser.open("https://www.google.com/maps/search/diabetes+clinic+near+me")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("🧾 View Report"):
+                st.session_state.page = "Report"
+                st.experimental_rerun()
+        with col2:
+            if st.button("📍 Find Nearby Clinics"):
+                st.write("Redirecting you to Google Maps for nearby clinics...")
+                webbrowser.open("https://www.google.com/maps/search/diabetes+clinic+near+me")
 
 # ---------------------------
-# Page 2: Report Page
+# Page 2: Report
 # ---------------------------
-elif st.session_state.page == "report":
+elif st.session_state.page == "Report":
     st.title("🧾 Diabetes Report")
     user_data = st.session_state.inputs
     features = ["Glucose", "BloodPressure", "BMI", "Age"]
@@ -81,9 +80,9 @@ elif st.session_state.page == "report":
     colorblind_mode = st.checkbox("♿ Enable colorblind-friendly palette", value=False)
     if colorblind_mode:
         st.caption("🎨 Using colorblind-safe colors for the graphs.")
-        diabetic_color = "#E69F00"       # Orange
-        non_diabetic_color = "#56B4E9"   # Blue
-        user_color = "#009E73"           # Green
+        diabetic_color = "#E69F00"
+        non_diabetic_color = "#56B4E9"
+        user_color = "#009E73"
     else:
         diabetic_color = "red"
         non_diabetic_color = "green"
@@ -107,10 +106,10 @@ elif st.session_state.page == "report":
     axs = axs.flatten()
     for i, feature in enumerate(features):
         ax = axs[i]
-        sns.histplot(data[data["Outcome"] == 1][feature],
-                     label="Diabetic", color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
-        sns.histplot(data[data["Outcome"] == 0][feature],
-                     label="Non-Diabetic", color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic",
+                     color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic",
+                     color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
         ax.axvline(user_data[feature], color=user_color, linestyle="--", label="Your Value")
         ax.set_title(f"{feature}", fontsize=14)
         ax.set_xlabel(feature, fontsize=12)
@@ -138,6 +137,5 @@ elif st.session_state.page == "report":
         st.success("👍 All your values are within the healthy range!")
 
     if st.button("🔙 Back to Prediction"):
-        st.session_state.page = "predict"
-        st.session_state.navigation_set_by_sidebar = False
-        st.rerun()
+        st.session_state.page = "Predict"
+        st.experimental_rerun()
