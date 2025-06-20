@@ -1,70 +1,116 @@
 import streamlit as st
 import numpy as np
-import joblib
 import pandas as pd
+import joblib
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Load model and dataset
 model = joblib.load("diabetes_model_clean.pkl")
 data = pd.read_csv("diabetes.csv")
 
-# Set page config
-st.set_page_config(page_title="Diabetes Risk Predictor", layout="centered")
+st.set_page_config(page_title="Diabetes App", layout="centered")
 
-# Session state to persist prediction result
+# Session state initialization
+if "page" not in st.session_state:
+    st.session_state.page = "predict"
 if "prediction" not in st.session_state:
     st.session_state.prediction = None
-    st.session_state.confidence = None
     st.session_state.inputs = {}
+    st.session_state.confidence = None
 
-# Theme selection (only affects widget colors manually)
-theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
-is_dark = theme == "Dark"
+# ---------------------------
+# Page 1: Prediction Page
+# ---------------------------
+if st.session_state.page == "predict":
+    st.title("🩺 Diabetes Risk Predictor")
+    st.markdown("Enter your health data below:")
 
-def themed_style(text, color_light, color_dark):
-    return f"<span style='color: {color_dark if is_dark else color_light}'>{text}</span>"
+    # Inputs
+    glucose = st.number_input("Glucose", 0, 200, 100)
+    bp = st.number_input("Blood Pressure", 40, 140, 80)
+    bmi = st.number_input("BMI", 10.0, 50.0, 25.0)
+    age = st.number_input("Age", 0, 100, 30)
 
-# Input values
-glucose = st.number_input("Glucose", 0, 200, 100)
-bp = st.number_input("Blood Pressure", 40, 140, 80)
-bmi = st.number_input("BMI", 10.0, 50.0, 25.0)
-age = st.number_input("Age", 0, 100, 30)
+    if st.button("🔍 Predict"):
+        input_data = np.array([[glucose, bp, bmi, age]])
+        prediction = model.predict(input_data)[0]
+        confidence = model.predict_proba(input_data)[0][prediction]
 
-if st.button("🔍 Predict"):
-    input_data = np.array([[glucose, bp, bmi, age]])
-    prediction = model.predict(input_data)[0]
-    confidence = model.predict_proba(input_data)[0][prediction] if hasattr(model, "predict_proba") else 0.5
+        # Save to session
+        st.session_state.prediction = prediction
+        st.session_state.confidence = round(confidence * 100, 2)
+        st.session_state.inputs = {
+            "Glucose": glucose,
+            "BloodPressure": bp,
+            "BMI": bmi,
+            "Age": age
+        }
 
-    # Store in session state
-    st.session_state.prediction = prediction
-    st.session_state.confidence = round(confidence * 100, 2)
-    st.session_state.inputs = {
-        "Glucose": glucose,
-        "BloodPressure": bp,
-        "BMI": bmi,
-        "Age": age
-    }
+        result = "Diabetic" if prediction == 1 else "Not Diabetic"
+        st.success(f"Prediction: {result}")
+        st.info(f"Confidence: {st.session_state.confidence}%")
 
-# Show result if available
-if st.session_state.prediction is not None:
-    result_text = "Diabetic" if st.session_state.prediction == 1 else "Not Diabetic"
-    st.success(f"Prediction: {result_text}")
-    st.info(f"Confidence: {st.session_state.confidence}%")
+        if prediction == 1:
+            if st.button("🧾 View Report"):
+                st.session_state.page = "report"
+                st.experimental_rerun()
 
-    # Show report only if diabetic
-    if st.session_state.prediction == 1:
-        if st.button("🧾 Generate Report"):
-            st.subheader("📊 Diagnostic Report")
+# ---------------------------
+# Page 2: Report Page
+# ---------------------------
+elif st.session_state.page == "report":
+    st.title("🧾 Diabetes Report")
 
-            # Compare user values to diabetic and non-diabetic means
-            features = ["Glucose", "BloodPressure", "BMI", "Age"]
-            diabetic_mean = data[data["Outcome"] == 1][features].mean()
-            non_diabetic_mean = data[data["Outcome"] == 0][features].mean()
+    user_data = st.session_state.inputs
+    features = ["Glucose", "BloodPressure", "BMI", "Age"]
 
-            for feature in features:
-                user_val = st.session_state.inputs[feature]
-                dist_to_diabetic = abs(user_val - diabetic_mean[feature])
-                dist_to_non_diabetic = abs(user_val - non_diabetic_mean[feature])
-                closer = "Diabetic" if dist_to_diabetic < dist_to_non_diabetic else "Non-Diabetic"
-                emoji = "🔴" if closer == "Diabetic" else "🟢"
-                st.markdown(f"{emoji} **{feature}** = {user_val} → closer to *{closer}* profile.")
+    st.subheader("📌 Feature Comparison to Diabetic Averages")
+    diabetic_avg = data[data["Outcome"] == 1][features].mean()
 
+    for feature in features:
+        user_val = user_data[feature]
+        avg_val = diabetic_avg[feature]
+        delta = user_val - avg_val
+        color = "red" if delta > 0 else "green"
+        st.markdown(
+            f"**{feature}**: {user_val} _(Avg: {round(avg_val,1)})_ → "
+            f"<span style='color:{color}'>{'High' if delta > 0 else 'Low'}</span>",
+            unsafe_allow_html=True
+        )
+
+    # 📉 Visualizations
+    st.subheader("📈 Distribution Comparison")
+    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
+    axs = axs.flatten()
+
+    for i, feature in enumerate(features):
+        sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic", color="red", ax=axs[i], kde=True)
+        sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic", color="green", ax=axs[i], kde=True)
+        axs[i].axvline(user_data[feature], color="blue", linestyle="--", label="Your Value")
+        axs[i].set_title(feature)
+        axs[i].legend()
+
+    st.pyplot(fig)
+
+    # 💡 Health Tips
+    st.subheader("💡 Suggestions to Improve Your Health")
+    tips = []
+    if user_data["Glucose"] > 125:
+        tips.append("⚠️ High glucose — reduce sugar intake and monitor carbohydrate consumption.")
+    if user_data["BMI"] > 30:
+        tips.append("⚠️ High BMI — consider regular physical activity and healthy eating.")
+    if user_data["BloodPressure"] > 120:
+        tips.append("⚠️ Elevated blood pressure — reduce salt, avoid stress, and monitor regularly.")
+    if user_data["Age"] > 45:
+        tips.append("✅ Regular screenings are recommended due to age-related risks.")
+
+    if tips:
+        for tip in tips:
+            st.markdown(tip)
+    else:
+        st.success("👍 All your values are within the healthy range!")
+
+    if st.button("🔙 Back to Prediction"):
+        st.session_state.page = "predict"
+        st.experimental_rerun()
