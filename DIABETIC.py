@@ -21,9 +21,9 @@ if "prediction" not in st.session_state:
     st.session_state.confidence = None
 
 # Sidebar navigation
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Predict", "Report"])
-st.session_state.page = page
+#st.sidebar.title("Navigation")
+#page = st.sidebar.radio("Go to", ["Predict", "Report"])
+#st.session_state.page = page
 
 # ---------------------------
 # Page 1: Prediction Page
