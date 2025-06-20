@@ -22,7 +22,7 @@ if "prediction" not in st.session_state:
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Predict", "Report", "What-if Analysis"])
+page = st.sidebar.radio("Go to", ["Predict", "Report"])
 st.session_state.page = page
 
 # ---------------------------
