@@ -63,6 +63,21 @@ elif st.session_state.page == "report":
     user_data = st.session_state.inputs
     features = ["Glucose", "BloodPressure", "BMI", "Age"]
 
+    # ✅ Colorblind toggle
+    colorblind_mode = st.checkbox("♿ Enable colorblind-friendly palette", value=False)
+    if colorblind_mode:
+        st.caption("🎨 Using colorblind-safe colors for the graphs.")
+
+    # Colors based on toggle
+    if colorblind_mode:
+        diabetic_color = "#E69F00"       # Orange
+        non_diabetic_color = "#56B4E9"   # Blue
+        user_color = "#009E73"           # Green
+    else:
+        diabetic_color = "red"
+        non_diabetic_color = "green"
+        user_color = "blue"
+
     st.subheader("📌 Feature Comparison to Diabetic Averages")
     diabetic_avg = data[data["Outcome"] == 1][features].mean()
 
@@ -79,30 +94,29 @@ elif st.session_state.page == "report":
 
     # 📉 Visualizations
     st.subheader("📈 Distribution Comparison")
-    
+
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     axs = axs.flatten()
-    features = ["Glucose", "BloodPressure", "BMI", "Age"]
-    
+
     for i, feature in enumerate(features):
         ax = axs[i]
         sns.histplot(data[data["Outcome"] == 1][feature], 
-                     label="Diabetic", color="red", ax=ax, kde=True, stat="count", alpha=0.5)
+                     label="Diabetic", color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
         sns.histplot(data[data["Outcome"] == 0][feature], 
-                     label="Non-Diabetic", color="green", ax=ax, kde=True, stat="count", alpha=0.5)
-    
-        ax.axvline(user_data[feature], color="blue", linestyle="--", label="Your Value")
+                     label="Non-Diabetic", color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+
+        ax.axvline(user_data[feature], color=user_color, linestyle="--", label="Your Value")
         ax.set_title(f"{feature}", fontsize=14)
         ax.set_xlabel(feature, fontsize=12)
         ax.set_ylabel("Count", fontsize=12)
         ax.tick_params(axis='x', labelsize=10)
         ax.tick_params(axis='y', labelsize=10)
         ax.legend(fontsize=10, loc='upper right')
-    
+
     plt.tight_layout()
     st.pyplot(fig)
 
-
+    # 💡 Health Suggestions
     st.subheader("💡 Suggestions to Improve Your Health")
     tips = []
     if user_data["Glucose"] > 125:
@@ -119,7 +133,6 @@ elif st.session_state.page == "report":
             st.markdown(tip)
     else:
         st.success("👍 All your values are within the healthy range!")
-
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "predict"
