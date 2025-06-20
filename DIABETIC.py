@@ -20,13 +20,11 @@ if "prediction" not in st.session_state:
     st.session_state.inputs = {}
     st.session_state.confidence = None
 
-# Sidebar navigation (safe method)
-selected_page = st.sidebar.radio("Navigation", ["Predict", "Report"])
-manual_nav = st.session_state.page != selected_page
-
-# Only update state if user hasn't already switched page via button
-if manual_nav:
+selected_page = st.sidebar.radio("Navigation", ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
+if selected_page != st.session_state.page:
     st.session_state.page = selected_page
+    st.rerun()
+
 
 # ---------------------------
 # Page 1: Prediction
@@ -66,8 +64,7 @@ if st.session_state.page == "Predict":
                 st.rerun()
         with col2:
             if st.button("📍 Find Nearby Clinics"):
-                st.write("Redirecting you to Google Maps for nearby clinics...")
-                webbrowser.open("https://www.google.com/maps/search/diabetes+clinic+near+me")
+                st.markdown("[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)", unsafe_allow_html=True)
 
 # ---------------------------
 # Page 2: Report
