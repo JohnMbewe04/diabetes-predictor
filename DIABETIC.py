@@ -129,10 +129,6 @@ elif st.session_state.page == "report":
         )
         st.pyplot(plt.gcf())
 
-except Exception as e:
-    st.error(f"SHAP explanation failed: {e}")
-
-
     except Exception as e:
         st.error(f"SHAP explanation failed: {e}")
 
