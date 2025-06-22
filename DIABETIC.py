@@ -21,7 +21,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 # Register PDF fonts
 pdfmetrics.registerFont(TTFont("NotoJP", "NotoSansCJKjp-Regular.otf"))
-pdfmetrics.registerFont(TTFont("NotoCN", "/mnt/data/NotoSansCJKtc-Regular.otf"))
+pdfmetrics.registerFont(TTFont("NotoCN", "NotoSansCJKtc-Regular.otf"))
 
 def get_pdf_font(lang_code):
     if lang_code == "ja":
