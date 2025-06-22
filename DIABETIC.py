@@ -158,7 +158,7 @@ if st.session_state.page == "Predict":
     glucose = st.number_input(t("Glucose", lang_code), 0, 200, 100)
     bp = st.number_input(t("Blood Pressure", lang_code), 40, 140, 80)
     bmi = st.number_input(t("BMI", lang_code), 10.0, 50.0, 25.0)
-    age = st.number_input(t("Age", lang_code), 0, 100, 30)
+    age = st.number_input(t("Age", lang_code), 1, 100, 30)
 
     if st.button(t("🔍 Predict", lang_code)):
         input_data = np.array([[glucose, bp, bmi, age]])
