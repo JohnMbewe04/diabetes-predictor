@@ -12,6 +12,8 @@ from datetime import datetime
 import pytz
 from deep_translator import GoogleTranslator
 from babel.dates import format_datetime
+import geocoder
+import webbrowser
 
 # Language mappings for translation and locale
 LANGUAGE_SETTINGS = {
@@ -118,10 +120,8 @@ if "language" not in st.session_state:
 if "lang_code" not in st.session_state:
     st.session_state.lang_code = "en"
 
-# Sidebar language selector
 language = st.sidebar.selectbox("🌐 Choose language", list(LANGUAGE_SETTINGS.keys()), index=list(LANGUAGE_SETTINGS.keys()).index(st.session_state.get("language", "English")))
 
-# Update session state if language changed
 if language != st.session_state.get("language"):
     st.session_state.language = language
     st.session_state.lang_code = LANGUAGE_SETTINGS[language]["translate"]
@@ -131,8 +131,6 @@ if language != st.session_state.get("language"):
 lang_code = st.session_state.get("lang_code", "en")
 locale_code = st.session_state.get("locale_code", "en_US")
 
-
-# Page state
 if "page" not in st.session_state:
     st.session_state.page = "Predict"
 if "prediction" not in st.session_state:
@@ -144,28 +142,16 @@ if "user_name" not in st.session_state:
 
 navigation_labels = {"Predict": t("Predict", lang_code), "Report": t("Report", lang_code)}
 
-# Sidebar navigation
-# Handle View Report button before rendering sidebar
 if "pending_page" in st.session_state:
     st.session_state.page = st.session_state.pending_page
     del st.session_state["pending_page"]
     st.rerun()
 
-# Now render sidebar and allow switching
-selected_page = st.sidebar.radio(
-    t("Navigation", lang_code),
-    ["Predict", "Report"],
-    format_func=lambda x: navigation_labels[x]
-)
-
+selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report"], format_func=lambda x: navigation_labels[x])
 if selected_page != st.session_state.page:
     st.session_state.page = selected_page
     st.rerun()
 
-
-#....................
-# Page: Prediction
-#.....................
 if st.session_state.page == "Predict":
     st.title(t("🩺 Diabetes Risk Predictor", lang_code))
     st.markdown(t("Enter your health data below:", lang_code))
@@ -198,16 +184,12 @@ if st.session_state.page == "Predict":
         col1, col2 = st.columns([1, 1])
         with col1:
             if st.button("🧾 View Report"):
-                st.session_state.page = "Report"
+                st.session_state.pending_page = "Report"
                 st.rerun()
         with col2:
-            # ✅ Only show if user is predicted as diabetic
             if st.session_state.prediction == 1:
                 st.markdown("[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)", unsafe_allow_html=True)
 
-#..........................
-# Page: Report
-#...........................
 elif st.session_state.page == "Report":
     st.title(t("🧾 Diabetes Report", lang_code))
     user_data = st.session_state.inputs
@@ -223,6 +205,7 @@ elif st.session_state.page == "Report":
         diabetic_color = "red"
         non_diabetic_color = "green"
         user_color = "blue"
+
     st.subheader("📌 Feature Comparison to Diabetic Averages")
     diabetic_avg = data[data["Outcome"] == 1][features].mean()
     for feature in features:
@@ -230,18 +213,11 @@ elif st.session_state.page == "Report":
         avg_val = diabetic_avg[feature]
         delta = user_val - avg_val
         color = "red" if delta > 0 else "green"
-        st.markdown(
-            f"**{feature}**: {user_val} _(Avg: {round(avg_val,1)})_ → "
-            f"<span style='color:{color}'>{'High' if delta > 0 else 'Low'}</span>",
-            unsafe_allow_html=True
-        )
+        st.markdown(f"**{feature}**: {user_val} _(Avg: {round(avg_val,1)})_ → <span style='color:{color}'>{'High' if delta > 0 else 'Low'}</span>", unsafe_allow_html=True)
 
-
-    # Format time
     local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))
     local_time_str = format_datetime(local_tz, locale=locale_code)
 
-    # Generate tips
     tips = []
     if user_data["Glucose"] > 125:
         tips.append("High glucose — reduce sugar intake and monitor carbohydrate consumption.")
@@ -254,28 +230,23 @@ elif st.session_state.page == "Report":
     if not tips:
         tips = ["All your values are within the healthy range!"]
 
-    # 📊 Graphs
     st.subheader(t("📈 Distribution Comparison", lang_code))
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     axs = axs.flatten()
     for i, feature in enumerate(features):
         ax = axs[i]
-        sns.histplot(data[data["Outcome"] == 1][feature], label=t("Diabetic", lang_code),
-                     color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
-        sns.histplot(data[data["Outcome"] == 0][feature], label=t("Non-Diabetic", lang_code),
-                     color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 1][feature], label=t("Diabetic", lang_code), color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 0][feature], label=t("Non-Diabetic", lang_code), color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
         ax.axvline(user_data[feature], color=user_color, linestyle="--", label=t("Your Value", lang_code))
         ax.set_title(t(feature, lang_code))
         ax.legend()
     plt.tight_layout()
     st.pyplot(fig)
 
-    # 💡 Health Tips (this is the restored part)
     st.subheader(t("💡 Suggestions to Improve Your Health", lang_code))
     for tip in tips:
         st.markdown(f"✅ {t(tip, lang_code)}")
 
-    # 📄 PDF download
     pdf = generate_pdf_report(
         user_data=user_data,
         prediction=st.session_state.prediction,
