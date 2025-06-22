@@ -20,7 +20,7 @@ if "prediction" not in st.session_state:
     st.session_state.confidence = None
 
 # Initialize input defaults if not set
-'''defaults = {
+defaults = {
     "Glucose": 100,
     "BloodPressure": 80,
     "BMI": 25.0,
@@ -28,7 +28,7 @@ if "prediction" not in st.session_state:
 }
 for key, val in defaults.items():
     if key not in st.session_state:
-        st.session_state[key] = val'''
+        st.session_state[key] = val
 
 # Sidebar navigation
 selected_page = st.sidebar.radio("Navigation", ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
@@ -43,34 +43,31 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    # Initialize inputs in session_state
-    for key, default in [("Glucose", 100), ("BloodPressure", 80), ("BMI", 25.0), ("Age", 30)]:
-        if key not in st.session_state:
-            st.session_state[key] = default
-    
-    # Use session_state-bound inputs (no 'value=' needed)
-    st.number_input("Glucose", 0, 200, key="Glucose")
-    st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
-    st.number_input("BMI", 10.0, 50.0, key="BMI")
-    st.number_input("Age", 0, 100, key="Age")
+    # Controlled inputs (persist across reruns reliably)
+    glucose = st.number_input("Glucose", 0, 200, value=st.session_state["Glucose"])
+    bp = st.number_input("Blood Pressure", 40, 140, value=st.session_state["BloodPressure"])
+    bmi = st.number_input("BMI", 10.0, 50.0, value=st.session_state["BMI"])
+    age = st.number_input("Age", 0, 100, value=st.session_state["Age"])
 
-    input_data = np.array([[st.session_state["Glucose"], st.session_state["BloodPressure"],
-                        st.session_state["BMI"], st.session_state["Age"]]])
+    # Update session state with current values
+    st.session_state["Glucose"] = glucose
+    st.session_state["BloodPressure"] = bp
+    st.session_state["BMI"] = bmi
+    st.session_state["Age"] = age
 
+    input_data = np.array([[glucose, bp, bmi, age]])
 
     if st.button("🔍 Predict"):
-        input_data = np.array([[st.session_state.Glucose, st.session_state.BloodPressure,
-                                st.session_state.BMI, st.session_state.Age]])
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
 
         st.session_state.prediction = prediction
         st.session_state.confidence = round(confidence * 100, 2)
         st.session_state.inputs = {
-            "Glucose": st.session_state.Glucose,
-            "BloodPressure": st.session_state.BloodPressure,
-            "BMI": st.session_state.BMI,
-            "Age": st.session_state.Age
+            "Glucose": glucose,
+            "BloodPressure": bp,
+            "BMI": bmi,
+            "Age": age
         }
 
         result = "Diabetic" if prediction == 1 else "Not Diabetic"
