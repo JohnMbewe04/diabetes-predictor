@@ -22,7 +22,6 @@ from reportlab.pdfbase.ttfonts import TTFont
 # Register PDF fonts
 pdfmetrics.registerFont(TTFont("NotoJP", "NotoSansJP-VariableFont_wght.ttf"))
 pdfmetrics.registerFont(TTFont("NotoCN", "NotoSansTC-VariableFont_wght.ttf"))
-pdfmetrics.registerFont(TTFont("Helvetica", "Helvetica"))  # fallback (pre-installed on ReportLab)
 
 def get_pdf_font(lang_code):
     if lang_code == "ja":
@@ -76,28 +75,28 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     bold_font = font_name  # You can register bold versions if you have them    
     c.setFont(font_name, 16)
     c.drawString(50, height - 50, t("Diabetes Prediction Report", lang_code))
-    c.setFont("Helvetica", 10)
+    c.setFont(font_name, 10)
     c.drawString(50, height - 70, f"{t('Generated on', lang_code)}: {local_time_str}")
     c.drawString(50, height - 85, f"{t('Name', lang_code)}: {user_name}")
 
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont(font_name, 12)
     c.drawString(50, height - 110, t("User Data", lang_code) + ":")
-    c.setFont("Helvetica", 11)
+    c.setFont(font_name, 11)
     y = height - 130
     for key, value in user_data.items():
         c.drawString(60, y, f"{t(key, lang_code)}: {value}")
         y -= 15
 
     result = t("Diabetic", lang_code) if prediction == 1 else t("Not Diabetic", lang_code)
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont(font_name, 12)
     c.drawString(50, y - 10, f"{t('Prediction', lang_code)}: {result}")
     c.drawString(50, y - 30, f"{t('Confidence', lang_code)}: {confidence}%")
 
     y -= 60
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont(font_name, 12)
     c.drawString(50, y, t("Health Recommendations", lang_code) + ":")
     y -= 20
-    c.setFont("Helvetica", 10)
+    c.setFont(font_name, 10)
     for tip in health_tips:
         c.drawString(60, y, f"- {t(tip, lang_code)}")
         y -= 15
