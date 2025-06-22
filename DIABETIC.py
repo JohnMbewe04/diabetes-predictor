@@ -193,6 +193,30 @@ elif st.session_state.page == "Report":
     user_data = st.session_state.inputs
     features = ["Glucose", "BloodPressure", "BMI", "Age"]
 
+    colorblind_mode = st.checkbox("♿ Enable colorblind-friendly palette", value=False)
+    if colorblind_mode:
+        st.caption("🎨 Using colorblind-safe colors for the graphs.")
+        diabetic_color = "#E69F00"
+        non_diabetic_color = "#56B4E9"
+        user_color = "#009E73"
+    else:
+        diabetic_color = "red"
+        non_diabetic_color = "green"
+        user_color = "blue"
+    st.subheader("📌 Feature Comparison to Diabetic Averages")
+    diabetic_avg = data[data["Outcome"] == 1][features].mean()
+    for feature in features:
+        user_val = user_data[feature]
+        avg_val = diabetic_avg[feature]
+        delta = user_val - avg_val
+        color = "red" if delta > 0 else "green"
+        st.markdown(
+            f"**{feature}**: {user_val} _(Avg: {round(avg_val,1)})_ → "
+            f"<span style='color:{color}'>{'High' if delta > 0 else 'Low'}</span>",
+            unsafe_allow_html=True
+        )
+
+
     # Format time
     local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))
     local_time_str = format_datetime(local_tz, locale=locale_code)
