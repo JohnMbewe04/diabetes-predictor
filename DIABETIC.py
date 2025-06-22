@@ -145,10 +145,23 @@ if "user_name" not in st.session_state:
     st.session_state.user_name = "Anonymous"
 
 navigation_labels = {"Predict": t("Predict", lang_code), "Report": t("Report", lang_code)}
-selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report"], format_func=lambda x: navigation_labels[x])
+# Preserve View Report button intent before sidebar re-renders
+if "pending_page" in st.session_state:
+    st.session_state.page = st.session_state.pending_page
+    del st.session_state["pending_page"]
+    st.rerun()
+
+# Sidebar navigation
+selected_page = st.sidebar.radio(
+    t("Navigation", lang_code),
+    ["Predict", "Report"],
+    format_func=lambda x: navigation_labels[x]
+)
+
 if selected_page != st.session_state.page:
     st.session_state.page = selected_page
     st.rerun()
+
 #....................
 # Page: Prediction
 #.....................
@@ -182,7 +195,7 @@ if st.session_state.page == "Predict":
 
     if st.session_state.prediction is not None:
         if st.button(t("🧾 View Report", lang_code)):
-            st.session_state.page = "Report"
+            st.session_state["pending_page"] = "Report"
             st.rerun()
 
 #..........................
