@@ -128,7 +128,7 @@ if language != st.session_state.get("language"):
     st.session_state.language = language
     st.session_state.lang_code = LANGUAGE_SETTINGS[language]["translate"]
     st.session_state.locale_code = LANGUAGE_SETTINGS[language]["locale"]
-    st.experimental_rerun()
+    st.rerun()
 
 lang_code = st.session_state.get("lang_code", "en")
 locale_code = st.session_state.get("locale_code", "en_US")
