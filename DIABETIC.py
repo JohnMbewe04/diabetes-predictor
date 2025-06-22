@@ -15,6 +15,18 @@ import pytz
 from deep_translator import GoogleTranslator
 from babel.dates import format_datetime
 
+# Language mappings for translation and locale
+LANGUAGE_SETTINGS = {
+    "English": {"translate": "en", "locale": "en_US"},
+    "Spanish": {"translate": "es", "locale": "es_ES"},
+    "French": {"translate": "fr", "locale": "fr_FR"},
+    "German": {"translate": "de", "locale": "de_DE"},
+    "Chinese": {"translate": "zh-CN", "locale": "zh_CN"},
+    "Arabic": {"translate": "ar", "locale": "ar_EG"},
+    "Malay": {"translate": "ms", "locale": "ms_MY"},
+    "Japanese": {"translate": "ja", "locale": "ja_JP"}
+}
+
 # -----------------------
 # Translation helper
 # -----------------------
@@ -108,19 +120,19 @@ if "language" not in st.session_state:
 if "lang_code" not in st.session_state:
     st.session_state.lang_code = "en"
 
-language = st.sidebar.selectbox("🌐 Choose language",
-    ["English", "Spanish", "French", "German", "Chinese", "Arabic", "Malay", "Japanese"],
-    index=["English", "Spanish", "French", "German", "Chinese", "Arabic", "Malay", "Japanese"].index(st.session_state.language))
+# Sidebar language selector
+language = st.sidebar.selectbox("🌐 Choose language", list(LANGUAGE_SETTINGS.keys()), index=list(LANGUAGE_SETTINGS.keys()).index(st.session_state.get("language", "English")))
 
-if language != st.session_state.language:
+# Update session state if language changed
+if language != st.session_state.get("language"):
     st.session_state.language = language
-    st.session_state.lang_code = {
-        "English": "en", "Spanish": "es", "French": "fr", "German": "de",
-        "Chinese": "zh-CN", "Arabic": "ar", "Malay": "ms", "Japanese": "ja"
-    }[language]
-    st.rerun()
+    st.session_state.lang_code = LANGUAGE_SETTINGS[language]["translate"]
+    st.session_state.locale_code = LANGUAGE_SETTINGS[language]["locale"]
+    st.experimental_rerun()
 
-lang_code = st.session_state.lang_code
+lang_code = st.session_state.get("lang_code", "en")
+locale_code = st.session_state.get("locale_code", "en_US")
+
 
 # Page state
 if "page" not in st.session_state:
@@ -203,8 +215,9 @@ elif st.session_state.page == "Report":
     if not tips:
         tips = ["All your values are within the healthy range!"]
 
-    local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))
-    local_time_str = format_datetime(local_tz, locale=lang_code)
+    # Get local time string in proper locale
+    local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))  # or use actual user time zone if detected
+    local_time_str = format_datetime(local_tz, locale=locale_code)
 
     pdf = generate_pdf_report(
         user_data=user_data,
