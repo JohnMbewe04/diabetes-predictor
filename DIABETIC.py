@@ -15,6 +15,7 @@ from babel.dates import format_datetime
 import geocoder
 import webbrowser
 from functools import lru_cache
+import matplotlib.font_manager as fm
 
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
@@ -146,6 +147,20 @@ if language != st.session_state.language:
 
 lang_code = st.session_state.lang_code
 locale_code = st.session_state.locale_code
+
+if lang_code == "ja":
+    font_path = "/mnt/data/NotoSansJP-VariableFont_wght.ttf"
+    jp_font = fm.FontProperties(fname=font_path)
+    plt.rcParams['font.family'] = jp_font.get_name()
+    plt.rcParams['axes.unicode_minus'] = False
+
+if lang_code == "zh_CN":
+    font_path = "/mnt/data/NotoSansTC-VariableFont_wght.ttf"
+    cn_font = fm.FontProperties(fname=font_path)
+    plt.rcParams['font.family'] = cn_font.get_name()
+    plt.rcParams['axes.unicode_minus'] = False
+
+
 
 # Page navigation
 selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
