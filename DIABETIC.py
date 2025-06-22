@@ -259,7 +259,8 @@ elif st.session_state.page == "Report":
 
     # Get local timezone string
     local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))  # Or dynamically replace
-    local_time_str = local_tz.strftime('%Y-%m-%d %H:%M:%S %Z')
+    local_time_str = local_tz.strftime('%A, %B %d, %Y at %I:%M %p (GMT%z)')
+    local_time_str = local_time_str[:-2] + ":" + local_time_str[-2:]
 
     pdf = generate_pdf_report(
         user_data=st.session_state.inputs,
