@@ -14,6 +14,21 @@ from deep_translator import GoogleTranslator
 from babel.dates import format_datetime
 import geocoder
 import webbrowser
+from functools import lru_cache
+
+@lru_cache(maxsize=1000)
+def cached_translate(text, lang):
+    if lang == "en":
+        return text
+    try:
+        return GoogleTranslator(source='auto', target=lang).translate(text)
+    except:
+        return text
+
+# Use this everywhere instead of `t(...)`
+def t(text, lang="en"):
+    return cached_translate(text, lang)
+
 
 # Language mappings
 LANGUAGE_SETTINGS = {
