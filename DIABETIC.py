@@ -16,6 +16,22 @@ import geocoder
 import webbrowser
 from functools import lru_cache
 import matplotlib.font_manager as fm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# Register PDF fonts
+pdfmetrics.registerFont(TTFont("NotoJP", "/mnt/data/NotoSansJP-VariableFont_wght.ttf"))
+pdfmetrics.registerFont(TTFont("NotoCN", "/mnt/data/NotoSansTC-VariableFont_wght.ttf"))
+pdfmetrics.registerFont(TTFont("Helvetica", "Helvetica"))  # fallback (pre-installed on ReportLab)
+
+def get_pdf_font(lang_code):
+    if lang_code == "ja":
+        return "NotoJP"
+    elif lang_code in ["zh-CN", "zh_CN"]:
+        return "NotoCN"
+    else:
+        return "Helvetica"
+
 
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
@@ -43,14 +59,6 @@ LANGUAGE_SETTINGS = {
     "Japanese": {"translate": "ja", "locale": "ja_JP"}
 }
 
-def t(text, lang="en"):
-    if lang == "en":
-        return text
-    try:
-        return GoogleTranslator(source='auto', target=lang).translate(text)
-    except:
-        return text
-
 @st.cache_resource
 def load_model():
     return joblib.load("diabetes_model_clean.pkl")
@@ -64,7 +72,9 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    c.setFont("Helvetica-Bold", 16)
+    font_name = get_pdf_font(lang_code)
+    bold_font = font_name  # You can register bold versions if you have them    
+    c.setFont(font_name, 16)
     c.drawString(50, height - 50, t("Diabetes Prediction Report", lang_code))
     c.setFont("Helvetica", 10)
     c.drawString(50, height - 70, f"{t('Generated on', lang_code)}: {local_time_str}")
@@ -147,20 +157,6 @@ if language != st.session_state.language:
 
 lang_code = st.session_state.lang_code
 locale_code = st.session_state.locale_code
-
-if lang_code == "ja":
-    font_path = "/mnt/data/NotoSansJP-VariableFont_wght.ttf"
-    jp_font = fm.FontProperties(fname=font_path)
-    plt.rcParams['font.family'] = jp_font.get_name()
-    plt.rcParams['axes.unicode_minus'] = False
-
-if lang_code == "zh_CN":
-    font_path = "/mnt/data/NotoSansTC-VariableFont_wght.ttf"
-    cn_font = fm.FontProperties(fname=font_path)
-    plt.rcParams['font.family'] = cn_font.get_name()
-    plt.rcParams['axes.unicode_minus'] = False
-
-
 
 # Page navigation
 selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
