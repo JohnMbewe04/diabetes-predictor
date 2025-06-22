@@ -10,7 +10,6 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from datetime import datetime
 import pytz
-import streamlit.components.v1 as components
 
 # -----------------------
 # Cached loading
@@ -24,53 +23,35 @@ def load_data():
     return pd.read_csv("diabetes.csv")
 
 # -----------------------
-# Timezone Auto Detection
+# Helper: Detect local timezone from browser
 # -----------------------
-if "user_timezone" not in st.session_state:
-    st.session_state["user_timezone"] = None
-
-# Inject JS only once to detect timezone
-if st.session_state["user_timezone"] is None:
-    components.html(
-        """
-        <script>
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const streamlitDoc = window.parent.document;
-            const input = streamlitDoc.createElement("input");
-            input.type = "hidden";
-            input.name = "user_timezone";
-            input.value = tz;
-            streamlitDoc.body.appendChild(input);
-            streamlitDoc.querySelector("form").dispatchEvent(new Event("submit"));
-        </script>
-        """,
-        height=0
-    )
-
-params = st.experimental_get_query_params()
-if "user_timezone" in params:
-    st.session_state["user_timezone"] = params["user_timezone"][0]
+def get_local_timezone():
+    js_code = """
+    async function getTimezone() {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return tz;
+    }
+    getTimezone().then(tz => {
+        window.parent.postMessage({streamlitTZ: tz}, "*");
+    });
+    """
+    st.components.v1.html(f"<script>{js_code}</script>", height=0)
+    msg = st.experimental_get_query_params().get("timezone", [""])[0]
+    return msg
 
 # -----------------------
 # PDF generation function
 # -----------------------
-def generate_pdf_report(user_data, prediction, confidence, health_tips, data, user_name, user_timezone):
+def generate_pdf_report(user_data, prediction, confidence, health_tips, data, user_name, local_time_str):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
-
-    # Adjust timestamp to user timezone
-    try:
-        tz = pytz.timezone(user_timezone)
-        timestamp = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S %Z')
-    except Exception:
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S (Local)')
 
     # Title and timestamp
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, height - 50, "Diabetes Prediction Report")
     c.setFont("Helvetica", 10)
-    c.drawString(50, height - 70, f"Generated on: {timestamp}")
+    c.drawString(50, height - 70, f"Generated on: {local_time_str}")
     c.drawString(50, height - 85, f"Name: {user_name}")
 
     # User Input Summary
@@ -117,7 +98,6 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
         plt.savefig(tmpfile.name)
         plt.close()
 
-        # Embed image in PDF
         c.drawImage(tmpfile.name, 50, 100, width=500, preserveAspectRatio=True, mask='auto')
 
     c.save()
@@ -141,6 +121,8 @@ if "prediction" not in st.session_state:
     st.session_state.prediction = None
     st.session_state.inputs = {}
     st.session_state.confidence = None
+if "user_name" not in st.session_state:
+    st.session_state.user_name = "Anonymous"
 
 defaults = {
     "Glucose": 100,
@@ -166,10 +148,11 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    # User input fields
-    user_name = st.text_input("Enter your name:", value="Anonymous")
-    st.session_state["user_name"] = user_name
+    # Name input
+    user_name = st.text_input("Enter your name:", value=st.session_state.user_name)
+    st.session_state.user_name = user_name
 
+    # Inputs
     st.number_input("Glucose", 0, 200, key="Glucose")
     st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
     st.number_input("BMI", 10.0, 50.0, key="BMI")
@@ -182,7 +165,6 @@ if st.session_state.page == "Predict":
             st.session_state["BMI"],
             st.session_state["Age"]
         ]])
-
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
 
@@ -248,10 +230,12 @@ elif st.session_state.page == "Report":
     axs = axs.flatten()
     for i, feature in enumerate(features):
         ax = axs[i]
-        sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic", color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
-        sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic", color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic",
+                     color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic",
+                     color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
         ax.axvline(user_data[feature], color=user_color, linestyle="--", label="Your Value")
-        ax.set_title(feature)
+        ax.set_title(f"{feature}")
         ax.legend()
     plt.tight_layout()
     st.pyplot(fig)
@@ -259,39 +243,40 @@ elif st.session_state.page == "Report":
     st.subheader("💡 Suggestions to Improve Your Health")
     tips = []
     if user_data["Glucose"] > 125:
-        tips.append("⚠️ High glucose — reduce sugar intake and monitor carbohydrate consumption.")
+        tips.append("High glucose — reduce sugar intake and monitor carbohydrate consumption.")
     if user_data["BMI"] > 30:
-        tips.append("⚠️ High BMI — consider regular physical activity and healthy eating.")
+        tips.append("High BMI — consider regular physical activity and healthy eating.")
     if user_data["BloodPressure"] > 120:
-        tips.append("⚠️ Elevated blood pressure — reduce salt, avoid stress, and monitor regularly.")
+        tips.append("Elevated blood pressure — reduce salt, avoid stress, and monitor regularly.")
     if user_data["Age"] > 45:
-        tips.append("✅ Regular screenings are recommended due to age-related risks.")
-    if tips:
-        for tip in tips:
-            st.markdown(tip)
-    else:
-        st.success("👍 All your values are within the healthy range!")
+        tips.append("Regular screenings are recommended due to age-related risks.")
+    if not tips:
+        tips = ["All your values are within the healthy range!"]
+    for tip in tips:
+        st.markdown(f"✅ {tip}")
 
     st.subheader("📤 Download Report")
 
-    if st.session_state.prediction is not None:
-        # Generate PDF with timestamp in user's timezone
-        pdf = generate_pdf_report(
-            user_data=st.session_state.inputs,
-            prediction=st.session_state.prediction,
-            confidence=st.session_state.confidence,
-            health_tips=tips if tips else ["All your values are within the healthy range!"],
-            data=data,
-            user_name=st.session_state["user_name"],
-            user_timezone=st.session_state.get("user_timezone", "UTC")
-        )
+    # Get local timezone string
+    local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))  # Or dynamically replace
+    local_time_str = local_tz.strftime('%Y-%m-%d %H:%M:%S %Z')
 
-        st.download_button(
-            label="📄 Download PDF Report",
-            data=pdf,
-            file_name="diabetes_report.pdf",
-            mime="application/pdf"
-        )
+    pdf = generate_pdf_report(
+        user_data=st.session_state.inputs,
+        prediction=st.session_state.prediction,
+        confidence=st.session_state.confidence,
+        health_tips=tips,
+        data=data,
+        user_name=st.session_state.user_name,
+        local_time_str=local_time_str
+    )
+
+    st.download_button(
+        label="📄 Download PDF Report",
+        data=pdf,
+        file_name="diabetes_report.pdf",
+        mime="application/pdf"
+    )
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "Predict"
