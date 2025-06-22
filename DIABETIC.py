@@ -20,8 +20,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 # Register PDF fonts
-pdfmetrics.registerFont(TTFont("NotoJP", "/mnt/data/NotoSansJP-VariableFont_wght.ttf"))
-pdfmetrics.registerFont(TTFont("NotoCN", "/mnt/data/NotoSansTC-VariableFont_wght.ttf"))
+pdfmetrics.registerFont(TTFont("NotoJP", "NotoSansJP-VariableFont_wght.ttf"))
+pdfmetrics.registerFont(TTFont("NotoCN", "NotoSansTC-VariableFont_wght.ttf"))
 pdfmetrics.registerFont(TTFont("Helvetica", "Helvetica"))  # fallback (pre-installed on ReportLab)
 
 def get_pdf_font(lang_code):
