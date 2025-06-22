@@ -117,8 +117,6 @@ if "user_name" not in st.session_state:
 # -----------------------
 # Sidebar Language Selector
 # -----------------------
-st.sidebar.subheader(t("🌐 Language", lang_code))
-language = st.sidebar.selectbox(t("Choose language", lang_code), ["English", "Spanish", "French", "German", "Chinese", "Arabic", "Malay", "Japanese"])
 lang_code = {
     "English": "en",
     "Spanish": "es",
@@ -129,6 +127,10 @@ lang_code = {
     "Malay": "ms",
     "Japanese": "ja"
 }[language]
+
+st.sidebar.subheader(t("🌐 Language", lang_code))
+language = st.sidebar.selectbox(t("Choose language", lang_code), ["English", "Spanish", "French", "German", "Chinese", "Arabic", "Malay", "Japanese"])
+
 
 navigation_labels = {
     "Predict": t("Predict", lang_code),
