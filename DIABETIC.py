@@ -11,7 +11,7 @@ data = pd.read_csv("diabetes.csv")
 
 st.set_page_config(page_title="Diabetes App", layout="centered")
 
-# Initialize session state
+# Initialize session state (page, prediction results)
 if "page" not in st.session_state:
     st.session_state.page = "Predict"
 if "prediction" not in st.session_state:
@@ -19,7 +19,7 @@ if "prediction" not in st.session_state:
     st.session_state.inputs = {}
     st.session_state.confidence = None
 
-# Initialize input defaults if not set
+# Initialize input fields only if not already set
 defaults = {
     "Glucose": 100,
     "BloodPressure": 80,
@@ -27,8 +27,7 @@ defaults = {
     "Age": 30
 }
 for key, val in defaults.items():
-    if key not in st.session_state:
-        st.session_state[key] = val
+    st.session_state.setdefault(key, val)
 
 # Sidebar navigation
 selected_page = st.sidebar.radio("Navigation", ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
@@ -43,19 +42,16 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    # Controlled inputs (persist across reruns reliably)
-    glucose = st.number_input("Glucose", 0, 200, value=st.session_state["Glucose"])
-    bp = st.number_input("Blood Pressure", 40, 140, value=st.session_state["BloodPressure"])
-    bmi = st.number_input("BMI", 10.0, 50.0, value=st.session_state["BMI"])
-    age = st.number_input("Age", 0, 100, value=st.session_state["Age"])
+    # Use session_state keys directly to bind inputs (no need to reassign manually)
+    st.number_input("Glucose", 0, 200, key="Glucose")
+    st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
+    st.number_input("BMI", 10.0, 50.0, key="BMI")
+    st.number_input("Age", 0, 100, key="Age")
 
-    # Update session state with current values
-    st.session_state["Glucose"] = glucose
-    st.session_state["BloodPressure"] = bp
-    st.session_state["BMI"] = bmi
-    st.session_state["Age"] = age
-
-    input_data = np.array([[glucose, bp, bmi, age]])
+    input_data = np.array([[st.session_state["Glucose"],
+                            st.session_state["BloodPressure"],
+                            st.session_state["BMI"],
+                            st.session_state["Age"]]])
 
     if st.button("🔍 Predict"):
         prediction = model.predict(input_data)[0]
@@ -64,10 +60,10 @@ if st.session_state.page == "Predict":
         st.session_state.prediction = prediction
         st.session_state.confidence = round(confidence * 100, 2)
         st.session_state.inputs = {
-            "Glucose": glucose,
-            "BloodPressure": bp,
-            "BMI": bmi,
-            "Age": age
+            "Glucose": st.session_state["Glucose"],
+            "BloodPressure": st.session_state["BloodPressure"],
+            "BMI": st.session_state["BMI"],
+            "Age": st.session_state["Age"]
         }
 
         result = "Diabetic" if prediction == 1 else "Not Diabetic"
@@ -82,7 +78,10 @@ if st.session_state.page == "Predict":
                 st.rerun()
         with col2:
             if st.session_state.prediction == 1:
-                st.markdown("[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)", unsafe_allow_html=True)
+                st.markdown(
+                    "[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)",
+                    unsafe_allow_html=True
+                )
 
 # ---------------------------
 # Page 2: Report
