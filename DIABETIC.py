@@ -8,7 +8,9 @@ from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-# Cached loading of model and dataset
+# -----------------------
+# Cached loading
+# -----------------------
 @st.cache_resource
 def load_model():
     return joblib.load("diabetes_model_clean.pkl")
@@ -17,6 +19,9 @@ def load_model():
 def load_data():
     return pd.read_csv("diabetes.csv")
 
+# -----------------------
+# PDF generation function
+# -----------------------
 def generate_pdf_report(user_data, prediction, confidence):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
@@ -38,13 +43,17 @@ def generate_pdf_report(user_data, prediction, confidence):
     buffer.seek(0)
     return buffer
 
-
+# -----------------------
+# Load model and data
+# -----------------------
 model = load_model()
 data = load_data()
 
 st.set_page_config(page_title="Diabetes App", layout="centered")
 
-# Initialize session state
+# -----------------------
+# Session state setup
+# -----------------------
 if "page" not in st.session_state:
     st.session_state.page = "Predict"
 if "prediction" not in st.session_state:
@@ -52,7 +61,6 @@ if "prediction" not in st.session_state:
     st.session_state.inputs = {}
     st.session_state.confidence = None
 
-# Set default inputs if not present
 defaults = {
     "Glucose": 100,
     "BloodPressure": 80,
@@ -62,7 +70,9 @@ defaults = {
 for key, val in defaults.items():
     st.session_state.setdefault(key, val)
 
-# Sidebar navigation
+# -----------------------
+# Navigation
+# -----------------------
 selected_page = st.sidebar.radio("Navigation", ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
 if selected_page != st.session_state.page:
     st.session_state.page = selected_page
@@ -75,20 +85,20 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    # Inputs using session state keys only
+    # User input fields (linked to session_state)
     st.number_input("Glucose", 0, 200, key="Glucose")
     st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
     st.number_input("BMI", 10.0, 50.0, key="BMI")
     st.number_input("Age", 0, 100, key="Age")
 
-    input_data = np.array([[
-        st.session_state["Glucose"],
-        st.session_state["BloodPressure"],
-        st.session_state["BMI"],
-        st.session_state["Age"]
-    ]])
-
     if st.button("🔍 Predict"):
+        input_data = np.array([[  # now defined inside the block
+            st.session_state["Glucose"],
+            st.session_state["BloodPressure"],
+            st.session_state["BMI"],
+            st.session_state["Age"]
+        ]])
+
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
 
@@ -185,7 +195,6 @@ elif st.session_state.page == "Report":
     else:
         st.success("👍 All your values are within the healthy range!")
 
-        # PDF Download Button
     st.subheader("📤 Download Report")
     pdf = generate_pdf_report(user_data, st.session_state.prediction, st.session_state.confidence)
     st.download_button(
@@ -194,7 +203,6 @@ elif st.session_state.page == "Report":
         file_name="diabetes_report.pdf",
         mime="application/pdf"
     )
-
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "Predict"
