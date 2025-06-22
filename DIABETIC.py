@@ -184,7 +184,7 @@ if st.session_state.page == "Predict":
         col1, col2 = st.columns([1, 1])
         with col1:
             if st.button("🧾 View Report"):
-                st.session_state.pending_page = "Report"
+                st.session_state.page = "Report"
                 st.rerun()
         with col2:
             if st.session_state.prediction == 1:
