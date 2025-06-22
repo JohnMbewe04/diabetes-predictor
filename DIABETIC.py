@@ -110,10 +110,16 @@ if "prediction" not in st.session_state:
     st.session_state.confidence = None
 if "user_name" not in st.session_state:
     st.session_state.user_name = "Anonymous"
+    
 if "language" not in st.session_state:
     st.session_state.language = "English"
-    st.session_state.lang_code = "en"
-    st.session_state.locale_code = "en_US"
+
+if "lang_code" not in st.session_state:
+    st.session_state.lang_code = LANGUAGE_SETTINGS[st.session_state.language]["translate"]
+
+if "locale_code" not in st.session_state:
+    st.session_state.locale_code = LANGUAGE_SETTINGS[st.session_state.language]["locale"]
+
 
 # Language selector
 language = st.sidebar.selectbox("🌐 Choose Language", list(LANGUAGE_SETTINGS.keys()), index=list(LANGUAGE_SETTINGS.keys()).index(st.session_state.language))
