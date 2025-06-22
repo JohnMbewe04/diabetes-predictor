@@ -20,7 +20,7 @@ if "prediction" not in st.session_state:
     st.session_state.confidence = None
 
 # Initialize input defaults if not set
-defaults = {
+'''defaults = {
     "Glucose": 100,
     "BloodPressure": 80,
     "BMI": 25.0,
@@ -28,7 +28,7 @@ defaults = {
 }
 for key, val in defaults.items():
     if key not in st.session_state:
-        st.session_state[key] = val
+        st.session_state[key] = val'''
 
 # Sidebar navigation
 selected_page = st.sidebar.radio("Navigation", ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
