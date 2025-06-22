@@ -131,6 +131,9 @@ if st.session_state.page == "Predict":
     st.markdown("Enter your health data below:")
 
     # User input fields (linked to session_state)
+    user_name = st.text_input("Enter your name:", value="Anonymous")
+    st.session_state["user_name"]
+
     st.number_input("Glucose", 0, 200, key="Glucose")
     st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
     st.number_input("BMI", 10.0, 50.0, key="BMI")
@@ -242,8 +245,7 @@ elif st.session_state.page == "Report":
 
     
     st.subheader("📤 Download Report")
-    user_name = st.text_input("Enter your name:", value="Anonymous")
-
+    
     # Only show download if prediction has been made
     if st.session_state.prediction is not None:
         # Generate health tips again
