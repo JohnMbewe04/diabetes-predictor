@@ -58,7 +58,6 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    font_name = get_pdf_font(lang_code)
     bold_font = "Helvetica"  # You can register bold versions if you have them    
     c.setFont("Helvetica", 16)
     c.drawString(50, height - 50, t("Diabetes Prediction Report", lang_code))
