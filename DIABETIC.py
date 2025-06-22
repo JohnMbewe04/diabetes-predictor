@@ -118,7 +118,7 @@ if language != st.session_state.language:
         "English": "en", "Spanish": "es", "French": "fr", "German": "de",
         "Chinese": "zh-CN", "Arabic": "ar", "Malay": "ms", "Japanese": "ja"
     }[language]
-    st.experimental_rerun()
+    st.rerun()
 
 lang_code = st.session_state.lang_code
 
@@ -136,7 +136,7 @@ navigation_labels = {"Predict": t("Predict", lang_code), "Report": t("Report", l
 selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report"], format_func=lambda x: navigation_labels[x])
 if selected_page != st.session_state.page:
     st.session_state.page = selected_page
-    st.experimental_rerun()
+    st.rerun()
 
 # Page: Prediction
 if st.session_state.page == "Predict":
@@ -170,7 +170,7 @@ if st.session_state.page == "Predict":
     if st.session_state.prediction is not None:
         if st.button(t("🧾 View Report", lang_code)):
             st.session_state.page = "Report"
-            st.experimental_rerun()
+            st.rerun()
 
 # Page: Report
 elif st.session_state.page == "Report":
@@ -226,4 +226,4 @@ elif st.session_state.page == "Report":
 
     if st.button(t("🔙 Back to Prediction", lang_code)):
         st.session_state.page = "Predict"
-        st.experimental_rerun()
+        st.rerun()
