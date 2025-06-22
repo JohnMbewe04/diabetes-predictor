@@ -241,10 +241,10 @@ elif st.session_state.page == "Report":
     for i, feature in enumerate(features):
         ax = axs[i]
         sns.histplot(data[data["Outcome"] == 1][feature], label=t("Diabetic", lang_code),
-                     color="red", ax=ax, kde=True, stat="count", alpha=0.5)
+                     color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
         sns.histplot(data[data["Outcome"] == 0][feature], label=t("Non-Diabetic", lang_code),
-                     color="green", ax=ax, kde=True, stat="count", alpha=0.5)
-        ax.axvline(user_data[feature], color="blue", linestyle="--", label=t("Your Value", lang_code))
+                     color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        ax.axvline(user_data[feature], color=user_color, linestyle="--", label=t("Your Value", lang_code))
         ax.set_title(t(feature, lang_code))
         ax.legend()
     plt.tight_layout()
