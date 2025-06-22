@@ -42,10 +42,17 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    st.number_input("Glucose", 0, 200, key="Glucose")
-    st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
-    st.number_input("BMI", 10.0, 50.0, key="BMI")
-    st.number_input("Age", 0, 100, key="Age")
+    # Controlled inputs (persist across reruns reliably)
+    glucose = st.number_input("Glucose", 0, 200, value=st.session_state["Glucose"])
+    bp = st.number_input("Blood Pressure", 40, 140, value=st.session_state["BloodPressure"])
+    bmi = st.number_input("BMI", 10.0, 50.0, value=st.session_state["BMI"])
+    age = st.number_input("Age", 0, 100, value=st.session_state["Age"])
+    
+    # Update session state with current values
+    st.session_state["Glucose"] = glucose
+    st.session_state["BloodPressure"] = bp
+    st.session_state["BMI"] = bmi
+    st.session_state["Age"] = age
 
 
     if st.button("🔍 Predict"):
