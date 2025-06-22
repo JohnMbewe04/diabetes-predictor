@@ -4,9 +4,12 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tempfile
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Image
+from datetime import datetime
 
 # -----------------------
 # Cached loading
@@ -22,22 +25,64 @@ def load_data():
 # -----------------------
 # PDF generation function
 # -----------------------
-def generate_pdf_report(user_data, prediction, confidence):
+def generate_pdf_report(user_data, prediction, confidence, health_tips, data, user_name):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
-    c.setFont("Helvetica", 12)
+    width, height = letter
 
-    c.drawString(100, 750, "Diabetes Prediction Report")
-    c.line(100, 747, 480, 747)
+    # Title and timestamp
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(50, height - 50, "Diabetes Prediction Report")
+    c.setFont("Helvetica", 10)
+    c.drawString(50, height - 70, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    c.drawString(50, height - 85, f"Name: {user_name}")
 
-    y = 720
+    # User Input Summary
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, height - 110, "User Data:")
+    c.setFont("Helvetica", 11)
+    y = height - 130
     for key, value in user_data.items():
-        c.drawString(100, y, f"{key}: {value}")
-        y -= 20
+        c.drawString(60, y, f"{key}: {value}")
+        y -= 15
 
+    # Prediction Result
     result = "Diabetic" if prediction == 1 else "Not Diabetic"
-    c.drawString(100, y - 10, f"Prediction: {result}")
-    c.drawString(100, y - 30, f"Confidence: {confidence}%")
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y - 10, f"Prediction: {result}")
+    c.drawString(50, y - 30, f"Confidence: {confidence}%")
+
+    # Health Tips
+    y = y - 60
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Health Recommendations:")
+    y -= 20
+    c.setFont("Helvetica", 10)
+    for tip in health_tips:
+        c.drawString(60, y, f"- {tip}")
+        y -= 15
+
+    # Plot charts and insert into PDF
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
+        features = ["Glucose", "BloodPressure", "BMI", "Age"]
+        diabetic_avg = data[data["Outcome"] == 1][features].mean()
+
+        fig, axs = plt.subplots(2, 2, figsize=(8, 6))
+        axs = axs.flatten()
+        for i, feature in enumerate(features):
+            ax = axs[i]
+            sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic", color="red", ax=ax, kde=True, stat="count", alpha=0.5)
+            sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic", color="green", ax=ax, kde=True, stat="count", alpha=0.5)
+            ax.axvline(user_data[feature], color="blue", linestyle="--", label="User")
+            ax.set_title(feature)
+            ax.legend()
+
+        plt.tight_layout()
+        plt.savefig(tmpfile.name)
+        plt.close()
+
+        # Embed image in PDF
+        c.drawImage(tmpfile.name, 50, 100, width=500, preserveAspectRatio=True, mask='auto')
 
     c.save()
     buffer.seek(0)
@@ -195,14 +240,41 @@ elif st.session_state.page == "Report":
     else:
         st.success("👍 All your values are within the healthy range!")
 
+    
     st.subheader("📤 Download Report")
-    pdf = generate_pdf_report(user_data, st.session_state.prediction, st.session_state.confidence)
-    st.download_button(
-        label="Download as PDF",
-        data=pdf,
-        file_name="diabetes_report.pdf",
-        mime="application/pdf"
-    )
+    user_name = st.text_input("Enter your name:", value="Anonymous")
+
+    # Only show download if prediction has been made
+    if st.session_state.prediction is not None:
+        # Generate health tips again
+        tips = []
+        if user_data["Glucose"] > 125:
+            tips.append("High glucose — reduce sugar intake and monitor carbohydrate consumption.")
+        if user_data["BMI"] > 30:
+            tips.append("High BMI — consider regular physical activity and healthy eating.")
+        if user_data["BloodPressure"] > 120:
+            tips.append("Elevated blood pressure — reduce salt, avoid stress, and monitor regularly.")
+        if user_data["Age"] > 45:
+            tips.append("Regular screenings are recommended due to age-related risks.")
+        if not tips:
+            tips = ["All your values are within the healthy range!"]
+
+        pdf = generate_pdf_report(
+            user_data=st.session_state.inputs,
+            prediction=st.session_state.prediction,
+            confidence=st.session_state.confidence,
+            health_tips=tips,
+            data=data,
+            user_name=user_name
+        )
+
+        st.download_button(
+            label="📄 Download PDF Report",
+            data=pdf,
+            file_name="diabetes_report.pdf",
+            mime="application/pdf"
+        )
+        
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "Predict"
