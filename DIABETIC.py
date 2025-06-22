@@ -142,11 +142,6 @@ if "user_name" not in st.session_state:
 
 navigation_labels = {"Predict": t("Predict", lang_code), "Report": t("Report", lang_code)}
 
-'''if "pending_page" in st.session_state:
-    st.session_state.page = st.session_state.pending_page
-    del st.session_state["pending_page"]
-    st.rerun()'''
-
 selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report"], format_func=lambda x: navigation_labels[x])
 if selected_page != st.session_state.page:
     st.session_state.page = selected_page
