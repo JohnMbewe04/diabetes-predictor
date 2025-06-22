@@ -42,16 +42,11 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    # Use session_state keys directly to bind inputs (no need to reassign manually)
     st.number_input("Glucose", 0, 200, key="Glucose")
     st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
     st.number_input("BMI", 10.0, 50.0, key="BMI")
     st.number_input("Age", 0, 100, key="Age")
 
-    input_data = np.array([[st.session_state["Glucose"],
-                            st.session_state["BloodPressure"],
-                            st.session_state["BMI"],
-                            st.session_state["Age"]]])
 
     if st.button("🔍 Predict"):
         prediction = model.predict(input_data)[0]
