@@ -197,9 +197,15 @@ if st.session_state.page == "Predict":
         st.info(f"{t('Confidence', lang_code)}: {st.session_state.confidence}%")
 
     if st.session_state.prediction is not None:
-        if st.button(t("🧾 View Report", lang_code)):
-            st.session_state["pending_page"] = "Report"
-            st.rerun()
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("🧾 View Report"):
+                st.session_state.page = "Report"
+                st.rerun()
+        with col2:
+            # ✅ Only show if user is predicted as diabetic
+            if st.session_state.prediction == 1:
+                st.markdown("[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)", unsafe_allow_html=True)
 
 #..........................
 # Page: Report
