@@ -1,4 +1,4 @@
-streamlit
+streamlit>=1.25
 numpy
 pandas
 matplotlib
@@ -9,3 +9,4 @@ scikit-learn
 reportlab
 deep-translator
 Babel
+
