@@ -10,6 +10,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Image
 from datetime import datetime
+import pytz  # make sure this is installed (pip install pytz)
 
 # -----------------------
 # Cached loading
@@ -25,7 +26,7 @@ def load_data():
 # -----------------------
 # PDF generation function
 # -----------------------
-def generate_pdf_report(user_data, prediction, confidence, health_tips, data, user_name):
+def generate_pdf_report(user_data, prediction, confidence, health_tips, data, user_name, user_timezone):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
@@ -33,8 +34,10 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     # Title and timestamp
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, height - 50, "Diabetes Prediction Report")
+
+    local_time = datetime.now(pytz.timezone(user_timezone)).strftime('%Y-%m-%d %H:%M:%S')
     c.setFont("Helvetica", 10)
-    c.drawString(50, height - 70, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    c.drawString(50, height - 70, f"Generated on: {local_time} ({user_timezone})")
     c.drawString(50, height - 85, f"Name: {user_name}")
 
     # User Input Summary
@@ -65,8 +68,6 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     # Plot charts and insert into PDF
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
         features = ["Glucose", "BloodPressure", "BMI", "Age"]
-        diabetic_avg = data[data["Outcome"] == 1][features].mean()
-
         fig, axs = plt.subplots(2, 2, figsize=(8, 6))
         axs = axs.flatten()
         for i, feature in enumerate(features):
@@ -76,12 +77,9 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
             ax.axvline(user_data[feature], color="blue", linestyle="--", label="User")
             ax.set_title(feature)
             ax.legend()
-
         plt.tight_layout()
         plt.savefig(tmpfile.name)
         plt.close()
-
-        # Embed image in PDF
         c.drawImage(tmpfile.name, 50, 100, width=500, preserveAspectRatio=True, mask='auto')
 
     c.save()
@@ -97,6 +95,23 @@ data = load_data()
 st.set_page_config(page_title="Diabetes App", layout="centered")
 
 # -----------------------
+# Time Zone Detection
+# -----------------------
+if "user_timezone" not in st.session_state:
+    st.session_state.user_timezone = None
+
+timezone = st.experimental_js(
+    "getTimezone",
+    """
+    async function() {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+    """
+)
+if timezone and st.session_state.user_timezone is None:
+    st.session_state.user_timezone = timezone
+
+# -----------------------
 # Session state setup
 # -----------------------
 if "page" not in st.session_state:
@@ -106,12 +121,7 @@ if "prediction" not in st.session_state:
     st.session_state.inputs = {}
     st.session_state.confidence = None
 
-defaults = {
-    "Glucose": 100,
-    "BloodPressure": 80,
-    "BMI": 25.0,
-    "Age": 30
-}
+defaults = {"Glucose": 100, "BloodPressure": 80, "BMI": 25.0, "Age": 30}
 for key, val in defaults.items():
     st.session_state.setdefault(key, val)
 
@@ -130,9 +140,8 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    # User input fields (linked to session_state)
-    user_name = st.text_input("Enter your name:", value="Anonymous")
-    st.session_state["user_name"]
+    st.session_state["user_name"] = st.text_input("Enter your name:", value="Anonymous")
+    st.caption(f"⏰ Detected Time Zone: {st.session_state['user_timezone'] or 'Detecting...'}")
 
     st.number_input("Glucose", 0, 200, key="Glucose")
     st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
@@ -140,24 +149,13 @@ if st.session_state.page == "Predict":
     st.number_input("Age", 0, 100, key="Age")
 
     if st.button("🔍 Predict"):
-        input_data = np.array([[  # now defined inside the block
-            st.session_state["Glucose"],
-            st.session_state["BloodPressure"],
-            st.session_state["BMI"],
-            st.session_state["Age"]
-        ]])
-
+        input_data = np.array([[st.session_state["Glucose"], st.session_state["BloodPressure"], st.session_state["BMI"], st.session_state["Age"]]])
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
 
         st.session_state.prediction = prediction
         st.session_state.confidence = round(confidence * 100, 2)
-        st.session_state.inputs = {
-            "Glucose": st.session_state["Glucose"],
-            "BloodPressure": st.session_state["BloodPressure"],
-            "BMI": st.session_state["BMI"],
-            "Age": st.session_state["Age"]
-        }
+        st.session_state.inputs = {key: st.session_state[key] for key in ["Glucose", "BloodPressure", "BMI", "Age"]}
 
         result = "Diabetic" if prediction == 1 else "Not Diabetic"
         st.success(f"Prediction: {result}")
@@ -171,10 +169,7 @@ if st.session_state.page == "Predict":
                 st.rerun()
         with col2:
             if st.session_state.prediction == 1:
-                st.markdown(
-                    "[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)",
-                    unsafe_allow_html=True
-                )
+                st.markdown("[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)", unsafe_allow_html=True)
 
 # ---------------------------
 # Page 2: Report
@@ -185,15 +180,9 @@ elif st.session_state.page == "Report":
     features = ["Glucose", "BloodPressure", "BMI", "Age"]
 
     colorblind_mode = st.checkbox("♿ Enable colorblind-friendly palette", value=False)
-    if colorblind_mode:
-        st.caption("🎨 Using colorblind-safe colors for the graphs.")
-        diabetic_color = "#E69F00"
-        non_diabetic_color = "#56B4E9"
-        user_color = "#009E73"
-    else:
-        diabetic_color = "red"
-        non_diabetic_color = "green"
-        user_color = "blue"
+    diabetic_color = "#E69F00" if colorblind_mode else "red"
+    non_diabetic_color = "#56B4E9" if colorblind_mode else "green"
+    user_color = "#009E73" if colorblind_mode else "blue"
 
     st.subheader("📌 Feature Comparison to Diabetic Averages")
     diabetic_avg = data[data["Outcome"] == 1][features].mean()
@@ -213,17 +202,11 @@ elif st.session_state.page == "Report":
     axs = axs.flatten()
     for i, feature in enumerate(features):
         ax = axs[i]
-        sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic",
-                     color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
-        sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic",
-                     color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic", color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic", color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
         ax.axvline(user_data[feature], color=user_color, linestyle="--", label="Your Value")
-        ax.set_title(f"{feature}", fontsize=14)
-        ax.set_xlabel(feature, fontsize=12)
-        ax.set_ylabel("Count", fontsize=12)
-        ax.tick_params(axis='x', labelsize=10)
-        ax.tick_params(axis='y', labelsize=10)
-        ax.legend(fontsize=10, loc='upper right')
+        ax.set_title(f"{feature}")
+        ax.legend()
     plt.tight_layout()
     st.pyplot(fig)
 
@@ -243,31 +226,16 @@ elif st.session_state.page == "Report":
     else:
         st.success("👍 All your values are within the healthy range!")
 
-    
     st.subheader("📤 Download Report")
-    
-    # Only show download if prediction has been made
     if st.session_state.prediction is not None:
-        # Generate health tips again
-        tips = []
-        if user_data["Glucose"] > 125:
-            tips.append("High glucose — reduce sugar intake and monitor carbohydrate consumption.")
-        if user_data["BMI"] > 30:
-            tips.append("High BMI — consider regular physical activity and healthy eating.")
-        if user_data["BloodPressure"] > 120:
-            tips.append("Elevated blood pressure — reduce salt, avoid stress, and monitor regularly.")
-        if user_data["Age"] > 45:
-            tips.append("Regular screenings are recommended due to age-related risks.")
-        if not tips:
-            tips = ["All your values are within the healthy range!"]
-
         pdf = generate_pdf_report(
             user_data=st.session_state.inputs,
             prediction=st.session_state.prediction,
             confidence=st.session_state.confidence,
-            health_tips=tips,
+            health_tips=tips if tips else ["All your values are within the healthy range!"],
             data=data,
-            user_name=user_name
+            user_name=st.session_state["user_name"],
+            user_timezone=st.session_state["user_timezone"] or "UTC"
         )
 
         st.download_button(
@@ -276,7 +244,6 @@ elif st.session_state.page == "Report":
             file_name="diabetes_report.pdf",
             mime="application/pdf"
         )
-        
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "Predict"
