@@ -11,7 +11,7 @@ data = pd.read_csv("diabetes.csv")
 
 st.set_page_config(page_title="Diabetes App", layout="centered")
 
-# Initialize session state (page, prediction results)
+# Initialize session state
 if "page" not in st.session_state:
     st.session_state.page = "Predict"
 if "prediction" not in st.session_state:
@@ -19,7 +19,7 @@ if "prediction" not in st.session_state:
     st.session_state.inputs = {}
     st.session_state.confidence = None
 
-# Initialize input fields only if not already set
+# Set default inputs if not present
 defaults = {
     "Glucose": 100,
     "BloodPressure": 80,
@@ -42,18 +42,18 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    # Controlled inputs (persist across reruns reliably)
-    glucose = st.number_input("Glucose", 0, 200, value=st.session_state["Glucose"])
-    bp = st.number_input("Blood Pressure", 40, 140, value=st.session_state["BloodPressure"])
-    bmi = st.number_input("BMI", 10.0, 50.0, value=st.session_state["BMI"])
-    age = st.number_input("Age", 0, 100, value=st.session_state["Age"])
-    
-    # Update session state with current values
-    st.session_state["Glucose"] = glucose
-    st.session_state["BloodPressure"] = bp
-    st.session_state["BMI"] = bmi
-    st.session_state["Age"] = age
+    # Inputs using session state keys only
+    st.number_input("Glucose", 0, 200, key="Glucose")
+    st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
+    st.number_input("BMI", 10.0, 50.0, key="BMI")
+    st.number_input("Age", 0, 100, key="Age")
 
+    input_data = np.array([[
+        st.session_state["Glucose"],
+        st.session_state["BloodPressure"],
+        st.session_state["BMI"],
+        st.session_state["Age"]
+    ]])
 
     if st.button("🔍 Predict"):
         prediction = model.predict(input_data)[0]
