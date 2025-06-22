@@ -43,10 +43,16 @@ if st.session_state.page == "Predict":
     st.title("🩺 Diabetes Risk Predictor")
     st.markdown("Enter your health data below:")
 
-    st.number_input("Glucose", 0, 200, value=st.session_state["Glucose"], key="Glucose")
-    st.number_input("Blood Pressure", 40, 140, value=st.session_state["BloodPressure"], key="BloodPressure")
-    st.number_input("BMI", 10.0, 50.0, value=st.session_state["BMI"], key="BMI")
-    st.number_input("Age", 0, 100, value=st.session_state["Age"], key="Age")
+    # Initialize inputs in session_state
+    for key, default in [("Glucose", 100), ("BloodPressure", 80), ("BMI", 25.0), ("Age", 30)]:
+        if key not in st.session_state:
+            st.session_state[key] = default
+    
+    # Use session_state-bound inputs (no 'value=' needed)
+    st.number_input("Glucose", 0, 200, key="Glucose")
+    st.number_input("Blood Pressure", 40, 140, key="BloodPressure")
+    st.number_input("BMI", 10.0, 50.0, key="BMI")
+    st.number_input("Age", 0, 100, key="Age")
 
     input_data = np.array([[st.session_state["Glucose"], st.session_state["BloodPressure"],
                         st.session_state["BMI"], st.session_state["Age"]]])
