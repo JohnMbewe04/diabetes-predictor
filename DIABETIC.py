@@ -4,10 +4,43 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
-# Load model and dataset
-model = joblib.load("diabetes_model_clean.pkl")
-data = pd.read_csv("diabetes.csv")
+# Cached loading of model and dataset
+@st.cache_resource
+def load_model():
+    return joblib.load("diabetes_model_clean.pkl")
+
+@st.cache_data
+def load_data():
+    return pd.read_csv("diabetes.csv")
+
+def generate_pdf_report(user_data, prediction, confidence):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    c.setFont("Helvetica", 12)
+
+    c.drawString(100, 750, "Diabetes Prediction Report")
+    c.line(100, 747, 480, 747)
+
+    y = 720
+    for key, value in user_data.items():
+        c.drawString(100, y, f"{key}: {value}")
+        y -= 20
+
+    result = "Diabetic" if prediction == 1 else "Not Diabetic"
+    c.drawString(100, y - 10, f"Prediction: {result}")
+    c.drawString(100, y - 30, f"Confidence: {confidence}%")
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+
+model = load_model()
+data = load_data()
 
 st.set_page_config(page_title="Diabetes App", layout="centered")
 
@@ -151,6 +184,17 @@ elif st.session_state.page == "Report":
             st.markdown(tip)
     else:
         st.success("👍 All your values are within the healthy range!")
+
+        # PDF Download Button
+    st.subheader("📤 Download Report")
+    pdf = generate_pdf_report(user_data, st.session_state.prediction, st.session_state.confidence)
+    st.download_button(
+        label="Download as PDF",
+        data=pdf,
+        file_name="diabetes_report.pdf",
+        mime="application/pdf"
+    )
+
 
     if st.button("🔙 Back to Prediction"):
         st.session_state.page = "Predict"
