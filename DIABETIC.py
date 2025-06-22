@@ -1,3 +1,5 @@
+# Diabetes Prediction App with Multilingual Support and PDF Report
+
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -13,7 +15,7 @@ import pytz
 from deep_translator import GoogleTranslator
 
 # -----------------------
-# Function to translate text
+# Translation helper
 # -----------------------
 def t(text, lang="en"):
     if lang == "en":
@@ -21,7 +23,7 @@ def t(text, lang="en"):
     try:
         return GoogleTranslator(source='auto', target=lang).translate(text)
     except:
-        return text  # fallback
+        return text
 
 # -----------------------
 # Cached loading
@@ -37,39 +39,44 @@ def load_data():
 # -----------------------
 # PDF generation function
 # -----------------------
-def generate_pdf_report(user_data, prediction, confidence, health_tips, data, user_name, local_time_str):
+def generate_pdf_report(user_data, prediction, confidence, health_tips, data, user_name, local_time_str, lang_code):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
+    # Title and timestamp
     c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, height - 50, "Diabetes Prediction Report")
+    c.drawString(50, height - 50, t("Diabetes Prediction Report", lang_code))
     c.setFont("Helvetica", 10)
-    c.drawString(50, height - 70, f"Generated on: {local_time_str}")
-    c.drawString(50, height - 85, f"Name: {user_name}")
+    c.drawString(50, height - 70, f"{t('Generated on', lang_code)}: {local_time_str}")
+    c.drawString(50, height - 85, f"{t('Name', lang_code)}: {user_name}")
 
+    # User Input Summary
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, height - 110, "User Data:")
+    c.drawString(50, height - 110, t("User Data", lang_code) + ":")
     c.setFont("Helvetica", 11)
     y = height - 130
     for key, value in user_data.items():
-        c.drawString(60, y, f"{key}: {value}")
+        c.drawString(60, y, f"{t(key, lang_code)}: {value}")
         y -= 15
 
-    result = "Diabetic" if prediction == 1 else "Not Diabetic"
+    # Prediction Result
+    result = t("Diabetic", lang_code) if prediction == 1 else t("Not Diabetic", lang_code)
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, y - 10, f"Prediction: {result}")
-    c.drawString(50, y - 30, f"Confidence: {confidence}%")
+    c.drawString(50, y - 10, f"{t('Prediction', lang_code)}: {result}")
+    c.drawString(50, y - 30, f"{t('Confidence', lang_code)}: {confidence}%")
 
-    y = y - 60
+    # Health Tips
+    y -= 60
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, y, "Health Recommendations:")
+    c.drawString(50, y, t("Health Recommendations", lang_code) + ":")
     y -= 20
     c.setFont("Helvetica", 10)
     for tip in health_tips:
-        c.drawString(60, y, f"- {tip}")
+        c.drawString(60, y, f"- {t(tip, lang_code)}")
         y -= 15
 
+    # Plot charts and insert into PDF
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
         features = ["Glucose", "BloodPressure", "BMI", "Age"]
         diabetic_avg = data[data["Outcome"] == 1][features].mean()
@@ -78,10 +85,10 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
         axs = axs.flatten()
         for i, feature in enumerate(features):
             ax = axs[i]
-            sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic", color="red", ax=ax, kde=True, stat="count", alpha=0.5)
-            sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic", color="green", ax=ax, kde=True, stat="count", alpha=0.5)
-            ax.axvline(user_data[feature], color="blue", linestyle="--", label="User")
-            ax.set_title(feature)
+            sns.histplot(data[data["Outcome"] == 1][feature], label=t("Diabetic", lang_code), color="red", ax=ax, kde=True, stat="count", alpha=0.5)
+            sns.histplot(data[data["Outcome"] == 0][feature], label=t("Non-Diabetic", lang_code), color="green", ax=ax, kde=True, stat="count", alpha=0.5)
+            ax.axvline(user_data[feature], color="blue", linestyle="--", label=t("User", lang_code))
+            ax.set_title(t(feature, lang_code))
             ax.legend()
 
         plt.tight_layout()
@@ -95,15 +102,42 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     return buffer
 
 # -----------------------
-# Load model and data
+# Main App Logic
 # -----------------------
 model = load_model()
 data = load_data()
-
 st.set_page_config(page_title="Diabetes App", layout="centered")
 
 # -----------------------
-# Session state setup
+# Language selection and state
+# -----------------------
+if "language" not in st.session_state:
+    st.session_state.language = "English"
+if "lang_code" not in st.session_state:
+    st.session_state.lang_code = "en"
+
+language = st.sidebar.selectbox("🌐 Choose language", 
+    ["English", "Spanish", "French", "German", "Chinese", "Arabic", "Malay", "Japanese"],
+    index=["English", "Spanish", "French", "German", "Chinese", "Arabic", "Malay", "Japanese"].index(st.session_state.language))
+
+if language != st.session_state.language:
+    st.session_state.language = language
+    st.session_state.lang_code = {
+        "English": "en",
+        "Spanish": "es",
+        "French": "fr",
+        "German": "de",
+        "Chinese": "zh-CN",
+        "Arabic": "ar",
+        "Malay": "ms",
+        "Japanese": "ja"
+    }[language]
+    st.rerun()
+
+lang_code = st.session_state.lang_code
+
+# -----------------------
+# Page State Setup
 # -----------------------
 if "page" not in st.session_state:
     st.session_state.page = "Predict"
@@ -114,39 +148,20 @@ if "prediction" not in st.session_state:
 if "user_name" not in st.session_state:
     st.session_state.user_name = "Anonymous"
 
-# -----------------------
-# Sidebar Language Selector
-# -----------------------
-language = st.sidebar.selectbox("🌐 Choose language", ["English", "Spanish", "French", "German", "Chinese", "Arabic", "Malay", "Japanese"])
-
-lang_code = {
-    "English": "en",
-    "Spanish": "es",
-    "French": "fr",
-    "German": "de",
-    "Chinese": "zh-CN",
-    "Arabic": "ar",
-    "Malay": "ms",
-    "Japanese": "ja"
-}[language]
-
-st.sidebar.subheader(t("🌐 Language", lang_code))
-
 navigation_labels = {
     "Predict": t("Predict", lang_code),
     "Report": t("Report", lang_code)
 }
 
-selected_page = st.sidebar.radio(
-    t("Navigation", lang_code),
-    ["Predict", "Report"],
-    format_func=lambda x: navigation_labels[x]
-)
+selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report"], format_func=lambda x: navigation_labels[x])
+if selected_page != st.session_state.page:
+    st.session_state.page = selected_page
+    st.rerun()
 
 # ---------------------------
-# Prediction Page
+# Page: Prediction
 # ---------------------------
-if selected_page == "Predict":
+if st.session_state.page == "Predict":
     st.title(t("🩺 Diabetes Risk Predictor", lang_code))
     st.markdown(t("Enter your health data below:", lang_code))
 
@@ -159,82 +174,56 @@ if selected_page == "Predict":
     st.number_input(t("Age", lang_code), 0, 100, key="Age")
 
     if st.button(t("🔍 Predict", lang_code)):
-        input_data = np.array([[st.session_state[k] for k in ["Glucose", "BloodPressure", "BMI", "Age"]]])
+        input_data = np.array([[
+            st.session_state["Glucose"],
+            st.session_state["BloodPressure"],
+            st.session_state["BMI"],
+            st.session_state["Age"]
+        ]])
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
 
         st.session_state.prediction = prediction
         st.session_state.confidence = round(confidence * 100, 2)
-        st.session_state.inputs = {k: st.session_state[k] for k in ["Glucose", "BloodPressure", "BMI", "Age"]}
+        st.session_state.inputs = {
+            "Glucose": st.session_state["Glucose"],
+            "BloodPressure": st.session_state["BloodPressure"],
+            "BMI": st.session_state["BMI"],
+            "Age": st.session_state["Age"]
+        }
 
         result = t("Diabetic", lang_code) if prediction == 1 else t("Not Diabetic", lang_code)
         st.success(f"{t('Prediction', lang_code)}: {result}")
         st.info(f"{t('Confidence', lang_code)}: {st.session_state.confidence}%")
 
     if st.session_state.prediction is not None:
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button(t("🧾 View Report", lang_code)):
-                st.session_state.page = "Report"
-                st.rerun()
-        with col2:
-            if st.session_state.prediction == 1:
-                st.markdown("[📍 Find Nearby Clinics](https://www.google.com/maps/search/diabetes+clinic+near+me)", unsafe_allow_html=True)
+        if st.button(t("🧾 View Report", lang_code)):
+            st.session_state.page = "Report"
+            st.rerun()
 
 # ---------------------------
-# Report Page
+# Page: Report
 # ---------------------------
-elif selected_page == "Report":
+elif st.session_state.page == "Report":
     st.title(t("🧾 Diabetes Report", lang_code))
     user_data = st.session_state.inputs
     features = ["Glucose", "BloodPressure", "BMI", "Age"]
 
-    colorblind_mode = st.checkbox(t("♿ Enable colorblind-friendly palette", lang_code), value=False)
-    diabetic_color = "#E69F00" if colorblind_mode else "red"
-    non_diabetic_color = "#56B4E9" if colorblind_mode else "green"
-    user_color = "#009E73" if colorblind_mode else "blue"
-
-    st.subheader(t("📌 Feature Comparison to Diabetic Averages", lang_code))
-    diabetic_avg = data[data["Outcome"] == 1][features].mean()
-    for feature in features:
-        user_val = user_data[feature]
-        avg_val = diabetic_avg[feature]
-        delta = user_val - avg_val
-        color = "red" if delta > 0 else "green"
-        st.markdown(f"**{feature}**: {user_val} _(Avg: {round(avg_val,1)})_ → <span style='color:{color}'>{t('High', lang_code) if delta > 0 else t('Low', lang_code)}</span>", unsafe_allow_html=True)
-
-    st.subheader(t("📈 Distribution Comparison", lang_code))
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
-    axs = axs.flatten()
-    for i, feature in enumerate(features):
-        ax = axs[i]
-        sns.histplot(data[data["Outcome"] == 1][feature], label="Diabetic", color=diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
-        sns.histplot(data[data["Outcome"] == 0][feature], label="Non-Diabetic", color=non_diabetic_color, ax=ax, kde=True, stat="count", alpha=0.5)
-        ax.axvline(user_data[feature], color=user_color, linestyle="--", label="Your Value")
-        ax.set_title(f"{feature}")
-        ax.legend()
-    plt.tight_layout()
-    st.pyplot(fig)
-
-    st.subheader(t("💡 Suggestions to Improve Your Health", lang_code))
-    tips = []
-    if user_data["Glucose"] > 125:
-        tips.append(t("High glucose — reduce sugar intake and monitor carbohydrate consumption.", lang_code))
-    if user_data["BMI"] > 30:
-        tips.append(t("High BMI — consider regular physical activity and healthy eating.", lang_code))
-    if user_data["BloodPressure"] > 120:
-        tips.append(t("Elevated blood pressure — reduce salt, avoid stress, and monitor regularly.", lang_code))
-    if user_data["Age"] > 45:
-        tips.append(t("Regular screenings are recommended due to age-related risks.", lang_code))
-    if not tips:
-        tips = [t("All your values are within the healthy range!", lang_code)]
-    for tip in tips:
-        st.markdown(f"✅ {tip}")
-
-    st.subheader(t("📤 Download Report", lang_code))
     local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))
     local_time_str = local_tz.strftime('%A, %B %d, %Y at %I:%M %p (GMT%z)')
     local_time_str = local_time_str[:-2] + ":" + local_time_str[-2:]
+
+    tips = []
+    if user_data["Glucose"] > 125:
+        tips.append("High glucose — reduce sugar intake and monitor carbohydrate consumption.")
+    if user_data["BMI"] > 30:
+        tips.append("High BMI — consider regular physical activity and healthy eating.")
+    if user_data["BloodPressure"] > 120:
+        tips.append("Elevated blood pressure — reduce salt, avoid stress, and monitor regularly.")
+    if user_data["Age"] > 45:
+        tips.append("Regular screenings are recommended due to age-related risks.")
+    if not tips:
+        tips = ["All your values are within the healthy range!"]
 
     pdf = generate_pdf_report(
         user_data=user_data,
@@ -243,7 +232,8 @@ elif selected_page == "Report":
         health_tips=tips,
         data=data,
         user_name=st.session_state.user_name,
-        local_time_str=local_time_str
+        local_time_str=local_time_str,
+        lang_code=lang_code
     )
 
     st.download_button(
