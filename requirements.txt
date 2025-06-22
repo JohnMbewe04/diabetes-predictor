@@ -7,3 +7,4 @@ plotly
 joblib
 scikit-learn
 reportlab
+deep-translator
