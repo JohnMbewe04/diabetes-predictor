@@ -130,7 +130,6 @@ lang_code = {
     "Japanese": "ja"
 }[language]
 
-st.sidebar.selectbox(t("🌐 Choose language", lang_code))
 st.sidebar.subheader(t("🌐 Language", lang_code))
 
 navigation_labels = {
