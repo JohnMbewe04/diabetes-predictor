@@ -149,8 +149,9 @@ selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report
 if selected_page != st.session_state.page:
     st.session_state.page = selected_page
     st.rerun()
-
+#....................
 # Page: Prediction
+#.....................
 if st.session_state.page == "Predict":
     st.title(t("🩺 Diabetes Risk Predictor", lang_code))
     st.markdown(t("Enter your health data below:", lang_code))
@@ -184,25 +185,19 @@ if st.session_state.page == "Predict":
             st.session_state.page = "Report"
             st.rerun()
 
+#..........................
 # Page: Report
+#...........................
 elif st.session_state.page == "Report":
     st.title(t("🧾 Diabetes Report", lang_code))
     user_data = st.session_state.inputs
     features = ["Glucose", "BloodPressure", "BMI", "Age"]
 
-    st.subheader(t("📈 Distribution Comparison", lang_code))
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
-    axs = axs.flatten()
-    for i, feature in enumerate(features):
-        ax = axs[i]
-        sns.histplot(data[data["Outcome"] == 1][feature], label=t("Diabetic", lang_code), color="red", ax=ax, kde=True, stat="count", alpha=0.5)
-        sns.histplot(data[data["Outcome"] == 0][feature], label=t("Non-Diabetic", lang_code), color="green", ax=ax, kde=True, stat="count", alpha=0.5)
-        ax.axvline(user_data[feature], color="blue", linestyle="--", label=t("User", lang_code))
-        ax.set_title(t(feature, lang_code))
-        ax.legend()
-    plt.tight_layout()
-    st.pyplot(fig)
+    # Format time
+    local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))
+    local_time_str = format_datetime(local_tz, locale=locale_code)
 
+    # Generate tips
     tips = []
     if user_data["Glucose"] > 125:
         tips.append("High glucose — reduce sugar intake and monitor carbohydrate consumption.")
@@ -215,10 +210,28 @@ elif st.session_state.page == "Report":
     if not tips:
         tips = ["All your values are within the healthy range!"]
 
-    # Get local time string in proper locale
-    local_tz = datetime.now(pytz.timezone("Asia/Kuala_Lumpur"))  # or use actual user time zone if detected
-    local_time_str = format_datetime(local_tz, locale=locale_code)
+    # 📊 Graphs
+    st.subheader(t("📈 Distribution Comparison", lang_code))
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+    axs = axs.flatten()
+    for i, feature in enumerate(features):
+        ax = axs[i]
+        sns.histplot(data[data["Outcome"] == 1][feature], label=t("Diabetic", lang_code),
+                     color="red", ax=ax, kde=True, stat="count", alpha=0.5)
+        sns.histplot(data[data["Outcome"] == 0][feature], label=t("Non-Diabetic", lang_code),
+                     color="green", ax=ax, kde=True, stat="count", alpha=0.5)
+        ax.axvline(user_data[feature], color="blue", linestyle="--", label=t("Your Value", lang_code))
+        ax.set_title(t(feature, lang_code))
+        ax.legend()
+    plt.tight_layout()
+    st.pyplot(fig)
 
+    # 💡 Health Tips (this is the restored part)
+    st.subheader(t("💡 Suggestions to Improve Your Health", lang_code))
+    for tip in tips:
+        st.markdown(f"✅ {t(tip, lang_code)}")
+
+    # 📄 PDF download
     pdf = generate_pdf_report(
         user_data=user_data,
         prediction=st.session_state.prediction,
