@@ -162,6 +162,10 @@ if st.session_state.page == "Predict":
     
     with col1:
         systolic = st.number_input(t("Systolic (mmHg)", lang_code), min_value=70, max_value=200, value=120, key="systolic_input")
+
+    with col_mid:
+        st.markdown("### /")
+    
     with col2:
         diastolic = st.number_input(t("Diastolic (mmHg)", lang_code), min_value=40, max_value=120, value=80, key="diastolic_input")
     
