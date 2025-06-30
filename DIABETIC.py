@@ -156,11 +156,30 @@ if st.session_state.page == "Predict":
     st.session_state.user_name = st.text_input(t("Enter your name:", lang_code), value=st.session_state.user_name)
 
     glucose = st.number_input(t("Glucose", lang_code), 0, 200, 100)
-    bp = st.number_input(t("Blood Pressure", lang_code), 40, 140, 80)
+    
+    bp_str = st.text_input(t("Blood Pressure (Systolic/Diastolic)", lang_code), "120/80")
+
+    try:
+        systolic_str, diastolic_str = bp_str.strip().split("/")
+        systolic = int(systolic_str)
+        diastolic = int(diastolic_str)
+    
+        # Basic validation
+        if systolic < 70 or systolic > 200 or diastolic < 40 or diastolic > 120:
+            st.error(t("Please enter realistic systolic/diastolic values (e.g., 120/80).", lang_code))
+            bp = None
+        else:
+            # Calculate MAP
+            bp = round((2 * diastolic + systolic) / 3, 2)
+            st.markdown(f"🧮 {t('Calculated MAP', lang_code)}: **{bp} mmHg**")
+    except ValueError:
+        st.error(t("Please enter blood pressure in the format: Systolic/Diastolic (e.g., 120/80)", lang_code))
+        bp = None
+    
     bmi = st.number_input(t("BMI", lang_code), 10.0, 50.0, 25.0)
     age = st.number_input(t("Age", lang_code), 1, 100, 30)
 
-    if st.button(t("🔍 Predict", lang_code)):
+    if st.button(t("🔍 Predict", lang_code)) and bp is not None:
         input_data = np.array([[glucose, bp, bmi, age]])
         prediction = model.predict(input_data)[0]
         confidence = model.predict_proba(input_data)[0][prediction]
