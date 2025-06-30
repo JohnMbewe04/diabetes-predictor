@@ -157,24 +157,17 @@ if st.session_state.page == "Predict":
 
     glucose = st.number_input(t("Glucose", lang_code), 0, 200, 100)
     
-    bp_str = st.text_input(t("Blood Pressure (Systolic/Diastolic)", lang_code), "120/80")
-
-    try:
-        systolic_str, diastolic_str = bp_str.strip().split("/")
-        systolic = int(systolic_str)
-        diastolic = int(diastolic_str)
+    st.markdown(t("Blood Pressure (Systolic / Diastolic)", lang_code))
+    col1, col2 = st.columns([1, 1])
     
-        # Basic validation
-        if systolic < 70 or systolic > 200 or diastolic < 40 or diastolic > 120:
-            st.error(t("Please enter realistic systolic/diastolic values (e.g., 120/80).", lang_code))
-            bp = None
-        else:
-            # Calculate MAP
-            bp = round((2 * diastolic + systolic) / 3, 2)
-            st.markdown(f"🧮 {t('Calculated MAP', lang_code)}: **{bp} mmHg**")
-    except ValueError:
-        st.error(t("Please enter blood pressure in the format: Systolic/Diastolic (e.g., 120/80)", lang_code))
-        bp = None
+    with col1:
+        systolic = st.number_input(t("Systolic (mmHg)", lang_code), min_value=70, max_value=200, value=120, key="systolic_input")
+    with col2:
+        diastolic = st.number_input(t("Diastolic (mmHg)", lang_code), min_value=40, max_value=120, value=80, key="diastolic_input")
+    
+    # Calculate Mean Arterial Pressure (MAP)
+    bp = (2 * diastolic + systolic) / 3
+
     
     bmi = st.number_input(t("BMI", lang_code), 10.0, 50.0, 25.0)
     age = st.number_input(t("Age", lang_code), 1, 100, 30)
