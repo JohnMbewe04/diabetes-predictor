@@ -158,19 +158,29 @@ if st.session_state.page == "Predict":
     glucose = st.number_input(t("Glucose", lang_code), 0, 200, 100)
     
     st.markdown(t("Blood Pressure (Systolic / Diastolic)", lang_code))
-    col1, col2 = st.columns([1, 1])
+    col1, col_mid, col2 = st.columns([2, 0.5, 2])
     
-    with col1:
-        systolic = st.number_input(t("Systolic (mmHg)", lang_code), min_value=70, max_value=200, value=120, key="systolic_input")
-
-    with col_mid:
-        st.markdown("### /")
+    systolic = col1.number_input(
+        t("Systolic (mmHg)", lang_code),
+        min_value=70,
+        max_value=200,
+        value=120,
+        key="systolic_input"
+    )
     
-    with col2:
-        diastolic = st.number_input(t("Diastolic (mmHg)", lang_code), min_value=40, max_value=120, value=80, key="diastolic_input")
+    col_mid.markdown("### /")
+    
+    diastolic = col2.number_input(
+        t("Diastolic (mmHg)", lang_code),
+        min_value=40,
+        max_value=120,
+        value=80,
+        key="diastolic_input"
+    )
     
     # Calculate Mean Arterial Pressure (MAP)
     bp = (2 * diastolic + systolic) / 3
+
 
     
     bmi = st.number_input(t("BMI", lang_code), 10.0, 50.0, 25.0)
