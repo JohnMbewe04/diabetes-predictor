@@ -158,7 +158,7 @@ if st.session_state.page == "Predict":
     glucose = st.number_input(t("Glucose", lang_code), 0, 200, 100)
     
     st.markdown(t("Blood Pressure (Systolic / Diastolic)", lang_code))
-    col1, col_mid, col2 = st.columns([2, 0.5, 2])
+    col1, col_mid, col2 = st.columns([2, 0.3, 2])  # narrower middle column
     
     systolic = col1.number_input(
         t("Systolic (mmHg)", lang_code),
@@ -168,7 +168,11 @@ if st.session_state.page == "Predict":
         key="systolic_input"
     )
     
-    col_mid.markdown("### /")
+    # Center the slash vertically using HTML
+    col_mid.markdown(
+        "<div style='text-align: center; padding-top: 38px; font-size: 20px;'>/</div>",
+        unsafe_allow_html=True
+    )
     
     diastolic = col2.number_input(
         t("Diastolic (mmHg)", lang_code),
@@ -178,8 +182,9 @@ if st.session_state.page == "Predict":
         key="diastolic_input"
     )
     
-    # Calculate Mean Arterial Pressure (MAP)
+    # Compute MAP
     bp = (2 * diastolic + systolic) / 3
+
 
 
     
