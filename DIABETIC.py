@@ -24,11 +24,29 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
-# Animation style
-if not st.session_state.get("popup_shown", False):
-    # --- Inject CSS for popup styling ---
-    st.markdown("""
+# Only show popup once
+if "popup_shown" not in st.session_state:
+    st.session_state["popup_shown"] = False
+
+if not st.session_state["popup_shown"]:
+    # Full popup + close button in one HTML block
+    popup_html = """
     <style>
+    .popup-fade {
+        animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translate(-50%, -40%) scale(0.95);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, -20%) scale(1);
+            opacity: 1;
+        }
+    }
+
     .overlay {
         position: fixed;
         top: 0;
@@ -39,45 +57,61 @@ if not st.session_state.get("popup_shown", False):
         background-color: rgba(0, 0, 0, 0.3);
         z-index: 998;
     }
+
     .popup-box {
-        background-color: #fff;
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translate(-50%, -20%);
+        width: 440px;
         padding: 24px;
         border-radius: 12px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.25);
-        max-width: 500px;
-        margin: auto;
-        margin-top: 100px;
         z-index: 999;
+        background-color: #fff;
         color: #000;
+        box-shadow: 0 0 20px rgba(0,0,0,0.25);
     }
+
     [data-theme="dark"] .popup-box {
         background-color: #262730;
         color: #fff;
     }
+
+    .popup-box h3 {
+        margin-top: 0;
+    }
+
+    .close-button {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        background-color: transparent;
+        border: none;
+        color: inherit;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    @media screen and (max-width: 500px) {
+        .popup-box {
+            width: 90%;
+        }
+    }
     </style>
-    """, unsafe_allow_html=True)
 
-    # --- Render blur overlay ---
-    st.markdown('<div class="overlay"></div>', unsafe_allow_html=True)
+    <div class="overlay" id="overlay"></div>
+    <div class="popup-box popup-fade" id="popup">
+        <button class="close-button" onclick="document.getElementById('popup').style.display='none';document.getElementById('overlay').style.display='none';">✖</button>
+        <h3>Welcome to the Diabetes Predictor App! 👋</h3>
+        <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
+        <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
+        <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
+    </div>
+    """
 
-    # --- Render popup content and button ---
-    with st.container():
-        st.markdown('<div class="popup-box">', unsafe_allow_html=True)
+    st.markdown(popup_html, unsafe_allow_html=True)
+    st.session_state["popup_shown"] = True  # Prevent showing again
 
-        st.markdown("""
-        ### 👋 Welcome to the Diabetes Predictor App!
-        This application uses a pre-trained AI model to assess diabetic risk.
-
-        **Note:** This prediction is not medical advice. Please consult a physician if needed.
-
-        📍 [Find clinics near you](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)
-        """, unsafe_allow_html=True)
-
-        # ✅ Real Streamlit button that lives *inside* the popup visually and functionally
-        if st.button("❌ Close"):
-            st.session_state.popup_shown = True
-
-        st.markdown('</div>', unsafe_allow_html=True)
 
 
 
