@@ -36,67 +36,70 @@ st.markdown(r"""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state to track if popup was shown
 if "popup_shown" not in st.session_state:
-    st.session_state.popup_shown = False
+    st.session_state["popup_shown"] = False
 
-if not st.session_state.popup_shown:
-    st.markdown("""
-        <style>
-        .main-content-blur {
-            filter: blur(6px);
-            transition: filter 0.3s ease-in-out;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    st.markdown('<div class="main-content-blur">', unsafe_allow_html=True)
-else:
-    st.markdown('<div>', unsafe_allow_html=True)
-
-# Show popup if it hasn't been closed yet
-if not st.session_state.get("popup_shown", False):
+if not st.session_state["popup_shown"]:
+    # Inject popup styles and blur background
     st.markdown("""
     <style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        backdrop-filter: blur(4px);
+        background-color: rgba(0, 0, 0, 0.3);
+        z-index: 9998;
+    }
+
     .popup-box {
-        background-color: #ffffff;
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translate(-50%, -20%);
+        background-color: var(--background-color);
         border: 2px solid #ccc;
         padding: 25px;
-        margin-top: 100px;
-        margin-left: auto;
-        margin-right: auto;
-        max-width: 500px;
+        z-index: 10000;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
         border-radius: 12px;
-        box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
-        color: #000;
+        width: 440px;
+        color: var(--text-color);
         font-family: 'Segoe UI', sans-serif;
     }
-    @media (prefers-color-scheme: dark) {
-        .popup-box {
-            background-color: #1e1e1e;
-            color: #fff;
-            border: 1px solid #444;
-        }
+
+    /* Light/Dark mode variables */
+    body[data-theme="light"] {
+        --background-color: #ffffff;
+        --text-color: #000000;
+    }
+    body[data-theme="dark"] {
+        --background-color: #262730;
+        --text-color: #ffffff;
     }
     </style>
+
+    <div class="overlay"></div>
     """, unsafe_allow_html=True)
 
+    # Render popup content (including Close button)
     with st.container():
-        st.markdown('<div class="popup-box">', unsafe_allow_html=True)
-
         st.markdown("""
-        ### 👋 Welcome to the Diabetes Predictor App
-        This application uses a pre-trained AI model to predict a person's diabetic status.
-
-        **Note:** Predictions are not medical advice. Please consult professionals when needed.
-
-        📍 [Find nearby clinics](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)
+        <div class="popup-box">
+            <h3>Welcome to the Diabetes Predictor App! 👋</h3>
+            <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
+            <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
+            <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
         """, unsafe_allow_html=True)
 
-        # Here's the real close button rendered by Streamlit
-        if st.button("❌ Close This"):
+        # Button *inside* popup
+        if st.button("❌ Close"):
             st.session_state.popup_shown = True
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
 
 st.markdown(r"""
 <style>
