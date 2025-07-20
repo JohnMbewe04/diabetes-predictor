@@ -55,49 +55,48 @@ else:
 
 # Show popup if it hasn't been closed yet
 if not st.session_state.get("popup_shown", False):
-    # Inject popup styles
     st.markdown("""
     <style>
     .popup-box {
-        position: fixed;
-        top: 20%;
-        left: 50%;
-        transform: translate(-50%, -20%);
         background-color: #ffffff;
         border: 2px solid #ccc;
         padding: 25px;
-        z-index: 10000;
-        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        margin-top: 100px;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 500px;
         border-radius: 12px;
-        width: 440px;
+        box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
         color: #000;
         font-family: 'Segoe UI', sans-serif;
     }
-    .popup-button {
-        position: fixed;
-        top: 65%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10001;
+    @media (prefers-color-scheme: dark) {
+        .popup-box {
+            background-color: #1e1e1e;
+            color: #fff;
+            border: 1px solid #444;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # Render popup content
-    st.markdown("""
-    <div class="popup-box">
-        <h3>Welcome to the Diabetes Predictor App! 👋</h3>
-        <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
-        <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
-        <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="popup-box">', unsafe_allow_html=True)
 
-    # Render a Streamlit button positioned inside the popup container
-    st.markdown('<div class="popup-button">', unsafe_allow_html=True)
-    if st.button("❌ Close"):
-        st.session_state.popup_shown = True
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("""
+        ### 👋 Welcome to the Diabetes Predictor App
+        This application uses a pre-trained AI model to predict a person's diabetic status.
+
+        **Note:** Predictions are not medical advice. Please consult professionals when needed.
+
+        📍 [Find nearby clinics](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)
+        """, unsafe_allow_html=True)
+
+        # Here's the real close button rendered by Streamlit
+        if st.button("❌ Close This"):
+            st.session_state.popup_shown = True
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown(r"""
 <style>
