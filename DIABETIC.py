@@ -115,10 +115,10 @@ theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
 # -- Function to apply background image based on theme
 def set_background(theme):
     if theme == "Dark":
-        image_file = "dark_background.png"  # Ensure this file exists
+        image_file = "dark_background.jpg"  # Ensure this file exists
         overlay_opacity = 0.6
     else:
-        image_file = "light_background.png"  # Ensure this file exists
+        image_file = "light_background.jpeg"  # Ensure this file exists
         overlay_opacity = 0.3
 
     with open(image_file, "rb") as image:
