@@ -199,19 +199,33 @@ def set_theme_styles(theme):
             unsafe_allow_html=True
         )
 
-def play_background_music(file_path: str):
+def play_background_music(file_path: str, muted: bool = False):
     with open(file_path, "rb") as audio_file:
         audio_bytes = audio_file.read()
         encoded = base64.b64encode(audio_bytes).decode()
 
+    mute_str = "muted" if muted else ""
+
     audio_html = f"""
-        <audio autoplay loop controls style="position: fixed; bottom: 20px; right: 20px; z-index:999;">
+        <audio id="bg-music" autoplay loop {mute_str} style="display: none;">
             <source src="data:audio/mp3;base64,{encoded}" type="audio/mp3">
-            Your browser does not support the audio element.
         </audio>
+        <script>
+        const audio = document.getElementById("bg-music");
+        if (audio) {{
+            {'audio.muted = true;' if muted else 'audio.muted = false;'}
+        }}
+        </script>
     """
 
     st.markdown(audio_html, unsafe_allow_html=True)
+
+
+if "mute_audio" not in st.session_state:
+    st.session_state.mute_audio = False
+
+st.session_state.mute_audio = st.sidebar.toggle("🔇 Mute Music", value=st.session_state.mute_audio)
+
 
 # ----------------------- MAIN APP -----------------------
 
@@ -223,7 +237,7 @@ set_theme_styles(theme)
 set_background(theme)
 
 # play background music
-play_background_music("background_music.MP3")
+play_background_music("background_music.MP3", muted=st.session_state.mute_audio)
 
 # Session init
 if "page" not in st.session_state:
