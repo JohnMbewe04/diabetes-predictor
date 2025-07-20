@@ -239,12 +239,6 @@ data = load_data()
 set_theme_styles(theme)
 set_background(theme)
 
-if "play_music" not in st.session_state:
-    st.session_state.play_music = False  # default: don't play
-
-if play_toggle:
-    st.session_state.play_music = not st.session_state.play_music
-
 # Load your actual file
 audio_b64 = get_audio_base64("background_music.MP3")
 audio_player_ui(audio_b64, st.session_state.play_music)
@@ -280,10 +274,17 @@ if language != st.session_state.language:
 lang_code = st.session_state.lang_code
 locale_code = st.session_state.locale_code
 
+if "play_music" not in st.session_state:
+    st.session_state.play_music = False  # default: don't play
+
 # Toggle in sidebar
 music_play_label = "▶️ " + t("Play Music", lang_code)
 music_stop_label = "⏹ " + t("Stop Music", lang_code)
+
 play_toggle = st.sidebar.button(music_play_label if not st.session_state.play_music else music_stop_label)
+
+if play_toggle:
+    st.session_state.play_music = not st.session_state.play_music
 
 # Page navigation
 selected_page = st.sidebar.radio(t("Navigation", lang_code), ["Predict", "Report"], index=["Predict", "Report"].index(st.session_state.page))
