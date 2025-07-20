@@ -110,111 +110,76 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     buffer.seek(0)
     return buffer
 
-
-# --- Initialize session state for theme
-if "theme" not in st.session_state:
-    st.session_state["theme"] = "Light"
-
-# --- User theme selection
-theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
-st.session_state["theme"] = theme
-
-# --- Background styling
-def set_background(theme):
-    if theme == "Dark":
-        image_path = "dark_background.jpg"
-        overlay_opacity = 0.6
-        mime = "jpeg"
+def set_theme_styles(theme):
+    if theme == "light":
+        bg_color = "#ffffff"
+        text_color = "#000000"
     else:
-        image_path = "light_background.jpeg"
-        overlay_opacity = 0.3
-        mime = "jpeg"
+        bg_color = "#1e1e1e"
+        text_color = "#ffffff"
+
+    st.markdown(f"""
+        <style>
+            :root {{
+                --bg-color: {bg_color};
+                --text-color: {text_color};
+            }}
+
+            body {{
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                transition: background-color 0.5s ease, color 0.5s ease;
+            }}
+
+            .stApp {{
+                color: var(--text-color);
+                transition: background 0.6s ease-in-out;
+            }}
+        </style>
+    """, unsafe_allow_html=True)
+
+def set_background(theme):
+    if theme == "dark":
+        image_path = "dark_background.jpg"
+        overlay_opacity = 0.5
+    else:
+        image_path = "light_background.jpg"
+        overlay_opacity = 0.2
 
     if not os.path.exists(image_path):
-        st.warning(f"Background image not found: {image_path}")
+        st.error(f"Image not found: {image_path}")
         return
 
-    # Encode image to base64
     with open(image_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
 
-    # Inject custom background and fade animation
-    st.markdown(
-        f"""
+    image_url = f"data:image/jpg;base64,{encoded}"
+
+    st.markdown(f"""
         <style>
-        .stApp {{
-            animation: fadeIn 1s ease-in-out;
-            background: linear-gradient(rgba(0,0,0,{overlay_opacity}), rgba(0,0,0,{overlay_opacity})),
-                        url("data:image/png;base64,{encoded}");
-            background-size: cover;
-            background-position: center;
-            transition: background 0.5s ease-in-out;
-        }}
-
-        @keyframes fadeIn {{
-            from {{ opacity: 0; }}
-            to {{ opacity: 1; }}
-        }}
+            .stApp {
+                background: linear-gradient(
+                    rgba(0, 0, 0, {overlay_opacity}),
+                    rgba(0, 0, 0, {overlay_opacity})
+                ), url("{image_url}");
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                transition: background 0.6s ease-in-out !important;
+            }
         </style>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
 
-# --- Theme color adjustments
-def set_theme_styles(theme):
-    if theme == "Dark":
-        st.markdown(
-            """
-            <style>
-            html, body, [class*="st-"] {
-                color: white;
-                background-color: #1e1e1e;
-                transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
-            }
-            .stTextInput > div > input {
-                background-color: #333;
-                color: white;
-            }
-            .stRadio > div {
-                background-color: #2c2c2c;
-                color: white;
-                border-radius: 8px;
-                padding: 6px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            """
-            <style>
-            html, body, [class*="st-"] {
-                color: black;
-                background-color: #ffffff;
-                transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
-            }
-            .stTextInput > div > input {
-                background-color: #f2f2f2;
-                color: black;
-            }
-            .stRadio > div {
-                background-color: #f9f9f9;
-                color: black;
-                border-radius: 8px;
-                padding: 6px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
-# --- Apply theme and background
-set_theme_styles(theme)
-set_background(theme)
 
 
 # ----------------------- MAIN APP -----------------------
+# Theme selector
+theme = st.sidebar.radio("Select Theme", ["light", "dark"])
+
+# Set styles and background
+set_theme_styles(theme)
+set_background(theme)
+
 
 model = load_model()
 data = load_data()
