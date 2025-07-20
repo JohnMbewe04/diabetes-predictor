@@ -101,11 +101,15 @@ if not st.session_state.popup_shown:
     if st.button("Close"):
         st.session_state.popup_shown = True
 
+st.markdown(r"""
+<style>
 @media screen and (max-width: 500px) {
     .popup-box {
         width: 90%;
     }
 }
+</style>
+""", unsafe_allow_html=True)
 
 if "play_music" not in st.session_state:
     st.session_state.play_music = True  # default: don't play
