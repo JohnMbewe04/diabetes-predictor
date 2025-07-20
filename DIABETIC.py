@@ -19,9 +19,6 @@ import matplotlib.font_manager as fm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import base64
-import os
-print(os.path.exists("dark_background.jpg"))  # Should be True
-
 
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
@@ -111,7 +108,6 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     buffer.seek(0)
     return buffer
 
-
 # --- Theme selector
 if "theme" not in st.session_state:
     st.session_state["theme"] = "Light"
@@ -122,45 +118,41 @@ st.session_state["theme"] = theme
 # --- Background image and overlay
 def set_background(theme):
     if theme == "Dark":
-        image_file = "dark_background.jpg"
+        image_url = "https://raw.githubusercontent.com/<your-username>/<your-repo>/main/dark_background.jpg"
         overlay_opacity = 0.6
     else:
-        image_file = "light_background.jpeg"
+        image_url = "https://raw.githubusercontent.com/<your-username>/<your-repo>/main/light_background.jpeg"
         overlay_opacity = 0.2
 
-    # Check file existence
-    try:
-        with open(image_file, "rb") as image:
-            encoded = base64.b64encode(image.read()).decode()
-    except FileNotFoundError:
-        st.warning(f"⚠️ Background image '{image_file}' not found.")
-        return
-
-    css = f"""
+    css = """
         <style>
-        .stApp {{
+        .stApp {
             animation: fadeIn 0.8s ease-in-out;
-            background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
-                        url("data:image/png;base64,{encoded}");
+            background: linear-gradient(
+                rgba(0, 0, 0, {opacity}),
+                rgba(0, 0, 0, {opacity})
+            ),
+            url("{url}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-        }}
+            transition: background-image 0.8s ease-in-out;
+        }
 
-        @keyframes fadeIn {{
-            0% {{ opacity: 0; }}
-            100% {{ opacity: 1; }}
-        }}
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
         </style>
-    """
+    """.format(opacity=overlay_opacity, url=image_url)
+
     st.markdown(css, unsafe_allow_html=True)
 
 
-# --- Apply theme-based styles
+# --- Theme-specific styling
 def set_theme_styles(theme):
     if theme == "Dark":
-        st.markdown(
-            """
+        st.markdown("""
             <style>
             html, body, [class*="st-"] {
                 color: #ffffff;
@@ -178,12 +170,9 @@ def set_theme_styles(theme):
                 border-radius: 8px;
             }
             </style>
-            """,
-            unsafe_allow_html=True
-        )
+        """, unsafe_allow_html=True)
     else:
-        st.markdown(
-            """
+        st.markdown("""
             <style>
             html, body, [class*="st-"] {
                 color: #000000;
@@ -201,13 +190,12 @@ def set_theme_styles(theme):
                 border-radius: 8px;
             }
             </style>
-            """,
-            unsafe_allow_html=True
-        )
+        """, unsafe_allow_html=True)
 
 # --- Apply styles and background
 set_theme_styles(theme)
 set_background(theme)
+
 
 # ----------------------- MAIN APP -----------------------
 
