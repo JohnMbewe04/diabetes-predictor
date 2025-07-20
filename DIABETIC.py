@@ -29,7 +29,7 @@ def add_bg_with_overlay(image_file):
     <style>
     .stApp {{
         background: 
-            linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+            linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),
             url("data:image/png;base64,{encoded}");
         background-size: cover;
         background-position: center;
