@@ -20,24 +20,37 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import base64
 
-def add_bg_from_local(image_file):
+
+def add_bg_with_overlay(image_file):
     with open(image_file, "rb") as image:
         encoded = base64.b64encode(image.read()).decode()
-    st.markdown(
-        f"""
+    st.markdown(f"""
         <style>
         .stApp {{
+            position: relative;
             background-image: url("data:image/png;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }}
+        .stApp::before {{
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);  /* Black overlay with 40% opacity */
+            z-index: 0;
+        }}
+        .block-container {{
+            position: relative;
+            z-index: 1;
+        }}
         </style>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
 
-add_bg_from_local("background.jpg")  # or replace with your image file name
+add_bg_with_overlay("background.png")
 
 
 @lru_cache(maxsize=1000)
