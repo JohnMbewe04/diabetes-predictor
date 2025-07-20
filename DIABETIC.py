@@ -55,47 +55,49 @@ else:
 
 # Show popup if it hasn't been closed yet
 if not st.session_state.get("popup_shown", False):
-    # --- Inject CSS ---
+    # Inject popup styles
     st.markdown("""
-        <style>
-        .popup-box {
-            position: fixed;
-            top: 20%;
-            left: 50%;
-            transform: translate(-50%, -20%);
-            background-color: #ffffff;
-            border: 2px solid #ccc;
-            padding: 25px;
-            z-index: 10000;
-            box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
-            border-radius: 12px;
-            width: 440px;
-            color: #000;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        @media (prefers-color-scheme: dark) {
-            .popup-box {
-                background-color: #1e1e1e;
-                color: #fff;
-                border: 1px solid #444;
-            }
-        }
-        </style>
+    <style>
+    .popup-box {
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translate(-50%, -20%);
+        background-color: #ffffff;
+        border: 2px solid #ccc;
+        padding: 25px;
+        z-index: 10000;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        border-radius: 12px;
+        width: 440px;
+        color: #000;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .popup-button {
+        position: fixed;
+        top: 65%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10001;
+    }
+    </style>
     """, unsafe_allow_html=True)
 
-    # --- Popup content as markdown ---
+    # Render popup content
     st.markdown("""
     <div class="popup-box">
         <h3>Welcome to the Diabetes Predictor App! 👋</h3>
-        <p>This application uses a pre-trained AI model to predict diabetic status based on health indicators.</p>
-        <p><strong>Note:</strong> Predictions may not be 100% accurate. Please seek professional advice if needed.</p>
+        <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
+        <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
         <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
     </div>
     """, unsafe_allow_html=True)
 
-    # --- Close button below popup box ---
-    if st.button("❌ Close popup"):
+    # Render a Streamlit button positioned inside the popup container
+    st.markdown('<div class="popup-button">', unsafe_allow_html=True)
+    if st.button("❌ Close"):
         st.session_state.popup_shown = True
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown(r"""
 <style>
