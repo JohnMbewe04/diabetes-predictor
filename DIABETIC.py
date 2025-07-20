@@ -208,7 +208,7 @@ def play_background_music(file_path: str, muted: bool = False):
 
     audio_html = f"""
         <audio id="bg-music" autoplay loop {mute_str} style="display: none;">
-            <source src="data:audio/mp3;base64,{encoded}" type="audio/mp3">
+            <source src="data:audio/mpeg;base64,{encoded}" type="audio/mpeg">
         </audio>
         <script>
         const audio = document.getElementById("bg-music");
@@ -224,7 +224,7 @@ def play_background_music(file_path: str, muted: bool = False):
 if "mute_audio" not in st.session_state:
     st.session_state.mute_audio = False
 
-st.session_state.mute_audio = st.sidebar.toggle("🔇 Mute Music", value=st.session_state.mute_audio)
+st.session_state.mute_audio = st.sidebar.toggle("🔇", value=st.session_state.mute_audio)
 
 
 # ----------------------- MAIN APP -----------------------
