@@ -25,88 +25,59 @@ if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
 # Animation style
-st.markdown("""
-<style>
-.popup-fade {
-    animation: slideIn 0.5s ease-out;
-}
-@keyframes slideIn {
-    from { transform: translate(-50%, -40%) scale(0.95); opacity: 0; }
-    to { transform: translate(-50%, -20%) scale(1); opacity: 1; }
-}
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    backdrop-filter: blur(4px);
-    background-color: rgba(0, 0, 0, 0.3);
-    z-index: 998;
-}
-.popup-box {
-    position: fixed;
-    top: 20%;
-    left: 50%;
-    transform: translate(-50%, -20%);
-    width: 440px;
-    padding: 24px;
-    border-radius: 12px;
-    z-index: 999;
-    background-color: #fff;
-    color: #000;
-    box-shadow: 0 0 20px rgba(0,0,0,0.25);
-}
-[data-theme="dark"] .popup-box {
-    background-color: #262730;
-    color: #fff;
-}
-.popup-box h3 {
-    margin-top: 0;
-}
-@media screen and (max-width: 500px) {
-    .popup-box {
-        width: 90%;
+if not st.session_state.get("popup_shown", False):
+    # --- Inject CSS for popup styling ---
+    st.markdown("""
+    <style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        backdrop-filter: blur(4px);
+        background-color: rgba(0, 0, 0, 0.3);
+        z-index: 998;
     }
-}
-</style>
-""", unsafe_allow_html=True)
+    .popup-box {
+        background-color: #fff;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.25);
+        max-width: 500px;
+        margin: auto;
+        margin-top: 100px;
+        z-index: 999;
+        color: #000;
+    }
+    [data-theme="dark"] .popup-box {
+        background-color: #262730;
+        color: #fff;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-# Show popup only once
-if "popup_shown" not in st.session_state:
-    st.session_state["popup_shown"] = False
-
-if not st.session_state["popup_shown"]:
+    # --- Render blur overlay ---
     st.markdown('<div class="overlay"></div>', unsafe_allow_html=True)
 
-    # Build popup
+    # --- Render popup content and button ---
     with st.container():
-        popup_html = """
-        <div class="popup-box popup-fade">
-            <h3>Welcome to the Diabetes Predictor App! 👋</h3>
-            <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
-            <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
-            <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
-        </div>
-        """
-        st.markdown(popup_html, unsafe_allow_html=True)
+        st.markdown('<div class="popup-box">', unsafe_allow_html=True)
 
-        # Absolute-position button (rendered on top of popup with slight offset)
-        close_button_style = """
-        <style>
-        .close-button {
-            position: fixed;
-            top: calc(20% + 200px);
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-        }
-        </style>
-        """
-        st.markdown(close_button_style, unsafe_allow_html=True)
-        with st.container():
-            if st.button("❌ Close", key="popup_close", help="Close this popup"):
-                st.session_state.popup_shown = True
+        st.markdown("""
+        ### 👋 Welcome to the Diabetes Predictor App!
+        This application uses a pre-trained AI model to assess diabetic risk.
+
+        **Note:** This prediction is not medical advice. Please consult a physician if needed.
+
+        📍 [Find clinics near you](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)
+        """, unsafe_allow_html=True)
+
+        # ✅ Real Streamlit button that lives *inside* the popup visually and functionally
+        if st.button("❌ Close"):
+            st.session_state.popup_shown = True
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 
