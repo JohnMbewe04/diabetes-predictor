@@ -20,7 +20,6 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import base64
 import requests
-import os
 
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
@@ -110,74 +109,102 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     buffer.seek(0)
     return buffer
 
-def set_theme_styles(theme):
-    if theme == "light":
-        bg_color = "#ffffff"
-        text_color = "#000000"
-    else:
-        bg_color = "#1e1e1e"
-        text_color = "#ffffff"
 
-    st.markdown(f"""
-        <style>
-            :root {{
-                --bg-color: {bg_color};
-                --text-color: {text_color};
-            }}
+# -- Theme selector
+theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
 
-            body {{
-                background-color: var(--bg-color);
-                color: var(--text-color);
-                transition: background-color 0.5s ease, color 0.5s ease;
-            }}
-
-            .stApp {{
-                color: var(--text-color);
-                transition: background 0.6s ease-in-out;
-            }}
-        </style>
-    """, unsafe_allow_html=True)
-
+# -- Function to apply background image based on theme
 def set_background(theme):
-    # Set overlay opacity based on theme
-    overlay_opacity = 0.3 if theme == "light" else 0.6
+    if theme == "Dark":
+        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/dark_background.jpg"
+        overlay_opacity = 0.6
+    else:
+        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/light_background.jpeg"
+        overlay_opacity = 0.2
 
-    image_path = "images/diabetes_bg.jpg" if theme == "light" else "images/dark_diabetes_bg.jpg"
+    try:
+        response = requests.get(image_url)
+        if response.status_code == 200:
+            encoded = base64.b64encode(response.content).decode()
 
-    if not os.path.exists(image_path):
-        print(f"⚠️ Background image not found at: {image_path}")
-        return
+            st.markdown(
+                f"""
+                <style>
+                .stApp {{
+                    animation: fadeIn 1s ease-in-out;
+                    background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
+                                url("data:image/jpeg;base64,{encoded}");
+                    background-size: cover;
+                    background-position: center;
+                    transition: background 0.8s ease-in-out;
+                }}
 
-    # Read and encode the image
-    with open(image_path, "rb") as img_file:
-        encoded = base64.b64encode(img_file.read()).decode()
+                @keyframes fadeIn {{
+                    0% {{ opacity: 0; }}
+                    100% {{ opacity: 1; }}
+                }}
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.warning("⚠️ Could not load background image.")
+    except Exception as e:
+        st.error(f"Error loading background: {e}")
 
-    image_url = f"data:image/jpeg;base64,{encoded}"
-
-    # Inject background CSS
-    st.markdown(rf"""
-        <style>
-            .stApp {{
-                background: linear-gradient(
-                    rgba(0, 0, 0, {overlay_opacity}),
-                    rgba(0, 0, 0, {overlay_opacity})
-                ), url("{image_url}");
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-                transition: background 0.6s ease-in-out !important;
+# -- Function to apply custom widget and text styles
+def set_theme_styles(theme):
+    if theme == "Dark":
+        st.markdown(
+            """
+            <style>
+            html, body, [class*="st-"] {{
+                color: #ffffff;
+                background-color: #1e1e1e;
             }}
-        </style>
-    """, unsafe_allow_html=True)
+            .stTextInput > div > input {{
+                background-color: #2e2e2e;
+                color: white;
+            }}
+            .stRadio > div {{
+                background-color: #2e2e2e;
+                color: white;
+                padding: 0.5rem;
+                border-radius: 8px;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            """
+            <style>
+            html, body, [class*="st-"] {{
+                color: #000000;
+                background-color: #ffffff;
+            }}
+            .stTextInput > div > input {{
+                background-color: #f0f0f0;
+                color: black;
+            }}
+            .stRadio > div {{
+                background-color: #f0f0f0;
+                color: black;
+                padding: 0.5rem;
+                border-radius: 8px;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 
-# ----------------------- MAIN APP -----------------------
-# Theme selector
-theme = st.sidebar.radio("Select Theme", ["light", "dark"])
-
-# Set styles and background
+# -- Apply styles and background
 set_theme_styles(theme)
 set_background(theme)
 
+
+# ----------------------- MAIN APP -----------------------
 
 model = load_model()
 data = load_data()
