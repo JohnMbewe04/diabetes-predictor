@@ -24,6 +24,15 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
+.popup-box {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translate(-50%, -40%); opacity: 0; }
+    to { transform: translate(-50%, -20%); opacity: 1; }
+}
+
 # Initialize session state to track if popup was shown
 if "popup_shown" not in st.session_state:
     st.session_state.popup_shown = False
@@ -88,6 +97,12 @@ if not st.session_state.popup_shown:
     # Close button
     if st.button("Close"):
         st.session_state.popup_shown = True
+
+@media screen and (max-width: 500px) {
+    .popup-box {
+        width: 90%;
+    }
+}
 
 if "play_music" not in st.session_state:
     st.session_state.play_music = True  # default: don't play
