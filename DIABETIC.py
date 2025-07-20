@@ -125,18 +125,23 @@ def set_background(theme):
         image_file = "light_background.jpeg"
         overlay_opacity = 0.2
 
-    with open(image_file, "rb") as image:
-        encoded = base64.b64encode(image.read()).decode()
+    # Check file existence
+    try:
+        with open(image_file, "rb") as image:
+            encoded = base64.b64encode(image.read()).decode()
+    except FileNotFoundError:
+        st.warning(f"⚠️ Background image '{image_file}' not found.")
+        return
 
-    st.markdown(
-        f"""
+    css = f"""
         <style>
         .stApp {{
-            animation: fadeIn 1s ease-in-out;
+            animation: fadeIn 0.8s ease-in-out;
             background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
                         url("data:image/png;base64,{encoded}");
             background-size: cover;
             background-position: center;
+            background-repeat: no-repeat;
         }}
 
         @keyframes fadeIn {{
@@ -144,9 +149,9 @@ def set_background(theme):
             100% {{ opacity: 1; }}
         }}
         </style>
-        """,
-        unsafe_allow_html=True
-    )
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
 
 # --- Apply theme-based styles
 def set_theme_styles(theme):
