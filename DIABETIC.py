@@ -139,25 +139,25 @@ def set_theme_styles(theme):
     """, unsafe_allow_html=True)
 
 def set_background(theme):
-    if theme == "dark":
-        image_path = "dark_background.jpg"
-        overlay_opacity = 0.5
-    else:
-        image_path = "light_background.jpeg"
-        overlay_opacity = 0.2
+    # Set overlay opacity based on theme
+    overlay_opacity = 0.3 if theme == "light" else 0.6
+
+    image_path = "images/diabetes_bg.jpg" if theme == "light" else "images/dark_diabetes_bg.jpg"
 
     if not os.path.exists(image_path):
-        st.error(f"Image not found: {image_path}")
+        print(f"⚠️ Background image not found at: {image_path}")
         return
 
-    with open(image_path, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
+    # Read and encode the image
+    with open(image_path, "rb") as img_file:
+        encoded = base64.b64encode(img_file.read()).decode()
 
-    image_url = f"data:image/jpg;base64,{encoded}"
+    image_url = f"data:image/jpeg;base64,{encoded}"
 
-    st.markdown(f"""
+    # Inject background CSS
+    st.markdown(rf"""
         <style>
-            .stApp {
+            .stApp {{
                 background: linear-gradient(
                     rgba(0, 0, 0, {overlay_opacity}),
                     rgba(0, 0, 0, {overlay_opacity})
@@ -166,11 +166,9 @@ def set_background(theme):
                 background-position: center;
                 background-repeat: no-repeat;
                 transition: background 0.6s ease-in-out !important;
-            }
+            }}
         </style>
     """, unsafe_allow_html=True)
-
-
 
 # ----------------------- MAIN APP -----------------------
 # Theme selector
