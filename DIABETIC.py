@@ -111,10 +111,11 @@ if not st.session_state.popup_shown:
     """, unsafe_allow_html=True)
 
 # Close button
-col1, col2 = st.columns([5, 1])
-with col2:
-    if st.button("❌"):
-        st.session_state.popup_shown = True
+if not st.session_state.popup_shown:
+    # ... your st.markdown with popup HTML ...
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.button("Close")
 
 st.markdown(r"""
 <style>
