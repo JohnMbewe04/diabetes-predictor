@@ -54,14 +54,9 @@ else:
     st.markdown('<div>', unsafe_allow_html=True)
 
 # Show popup if it hasn't been closed yet
-if not st.session_state.popup_shown:
-    # CSS for blur and popup styling
+if not st.session_state.get("popup_shown", False):
     st.markdown("""
         <style>
-        .blurred {
-            filter: blur(6px);
-        }
-
         .popup-box {
             position: fixed;
             top: 20%;
@@ -70,49 +65,45 @@ if not st.session_state.popup_shown:
             background-color: #ffffff;
             border: 2px solid #ccc;
             padding: 25px;
-            z-index: 9999;
+            z-index: 10000;
             box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
             border-radius: 12px;
             width: 440px;
             color: #000;
             font-family: 'Segoe UI', sans-serif;
         }
-
         @media (prefers-color-scheme: dark) {
             .popup-box {
                 background-color: #1e1e1e;
                 color: #fff;
                 border: 1px solid #444;
             }
-            .popup-box a {
-                color: #4ea8ff;
-            }
-        }
-
-        .popup-box a {
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        .popup-box a:hover {
-            text-decoration: underline;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # Popup HTML content
-    st.markdown("""
+    # Render the popup content + button using a form
+    with st.form("intro_popup"):
+        st.markdown("""
         <div class="popup-box">
             <h3>Welcome to the Diabetes Predictor App! 👋</h3>
             <p>This application uses a pre-trained AI model to predict a person's diabetic status based on provided health indicators.</p>
             <p><strong>Note:</strong> The predictions made by this model are not 100% accurate. If you suspect that you may be diabetic, please seek professional medical advice.</p>
-            <p>Need assistance? <a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">Find diabetic medical facilities near you.</a></p>
+            <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">Find nearby diabetic clinics 🏥</a></p>
+            <br>
+            <button type="submit" style="
+                background-color: #007bff;
+                color: white;
+                padding: 10px 18px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+            ">Close</button>
         </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-# Close button
-if st.button("Close"):
-    st.session_state.popup_shown = True
+        if st.form_submit_button("Close"):
+            st.session_state.popup_shown = True
 
 st.markdown(r"""
 <style>
