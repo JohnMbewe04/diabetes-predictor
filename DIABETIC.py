@@ -109,16 +109,20 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     return buffer
 
 
-# -- Theme selector
-theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
+# --- Theme selector
+if "theme" not in st.session_state:
+    st.session_state["theme"] = "Light"
 
-# -- Function to apply background image based on theme
+theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
+st.session_state["theme"] = theme
+
+# --- Background image and overlay
 def set_background(theme):
     if theme == "Dark":
-        image_file = "dark_background.jpg"  # Ensure this file exists
+        image_file = "dark_background.jpg"
         overlay_opacity = 0.6
     else:
-        image_file = "light_background.jpeg"  # Ensure this file exists
+        image_file = "light_background.jpeg"
         overlay_opacity = 0.2
 
     with open(image_file, "rb") as image:
@@ -128,37 +132,43 @@ def set_background(theme):
         f"""
         <style>
         .stApp {{
+            animation: fadeIn 1s ease-in-out;
             background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
                         url("data:image/png;base64,{encoded}");
             background-size: cover;
             background-position: center;
-            transition: background 0.5s ease;
+        }}
+
+        @keyframes fadeIn {{
+            0% {{ opacity: 0; }}
+            100% {{ opacity: 1; }}
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-# -- Function to apply custom widget and text styles
+# --- Apply theme-based styles
 def set_theme_styles(theme):
     if theme == "Dark":
         st.markdown(
             """
             <style>
-            html, body, [class*="st-"] {{
+            html, body, [class*="st-"] {
                 color: #ffffff;
                 background-color: #1e1e1e;
-            }}
-            .stTextInput > div > input {{
+                transition: background-color 0.5s ease;
+            }
+            .stTextInput > div > input {
                 background-color: #2e2e2e;
                 color: white;
-            }}
-            .stRadio > div {{
+            }
+            .stRadio > div {
                 background-color: #2e2e2e;
                 color: white;
                 padding: 0.5rem;
                 border-radius: 8px;
-            }}
+            }
             </style>
             """,
             unsafe_allow_html=True
@@ -167,26 +177,27 @@ def set_theme_styles(theme):
         st.markdown(
             """
             <style>
-            html, body, [class*="st-"] {{
+            html, body, [class*="st-"] {
                 color: #000000;
                 background-color: #ffffff;
-            }}
-            .stTextInput > div > input {{
+                transition: background-color 0.5s ease;
+            }
+            .stTextInput > div > input {
                 background-color: #f0f0f0;
                 color: black;
-            }}
-            .stRadio > div {{
+            }
+            .stRadio > div {
                 background-color: #f0f0f0;
                 color: black;
                 padding: 0.5rem;
                 border-radius: 8px;
-            }}
+            }
             </style>
             """,
             unsafe_allow_html=True
         )
 
-# -- Apply styles and background
+# --- Apply styles and background
 set_theme_styles(theme)
 set_background(theme)
 
