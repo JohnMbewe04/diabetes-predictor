@@ -121,10 +121,10 @@ st.session_state["theme"] = theme
 # --- Background styling
 def set_background(theme):
     if theme == "Dark":
-        image_path = "dark_background.png"
+        image_path = "dark_background.jpg"
         overlay_opacity = 0.6
     else:
-        image_path = "light_background.png"
+        image_path = "light_background.jpeg"
         overlay_opacity = 0.3
 
     # Encode image to base64
