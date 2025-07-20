@@ -21,6 +21,9 @@ from reportlab.pdfbase.ttfonts import TTFont
 import base64
 import requests
 
+if "play_music" not in st.session_state:
+    st.session_state.play_music = True  # default: don't play
+
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
     if lang == "en":
@@ -274,9 +277,6 @@ if language != st.session_state.language:
 lang_code = st.session_state.lang_code
 locale_code = st.session_state.locale_code
 
-if "play_music" not in st.session_state:
-    st.session_state.play_music = False  # default: don't play
-
 # Toggle in sidebar
 music_play_label = "▶️ " + t("Play Music", lang_code)
 music_stop_label = "⏹ " + t("Stop Music", lang_code)
@@ -326,7 +326,7 @@ if st.session_state.page == "Predict":
     )
     
     # Compute MAP
-    bp = (2 * diastolic + systolic) / 3
+    bp = round((2 * diastolic + systolic) / 3)
     bmi = st.number_input(t("BMI", lang_code), 10.0, 50.0, 25.0)
     age = st.number_input(t("Age", lang_code), 1, 100, 30)
 
