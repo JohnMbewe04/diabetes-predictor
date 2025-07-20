@@ -28,9 +28,44 @@ if st.session_state["show_intro"]:
     with st.container():
         st.markdown(
             """
-            <div style="position:fixed; top:20%; left:50%; transform:translate(-50%, -20%); background-color:white; 
-                        border:2px solid #ccc; padding:20px; z-index:9999; box-shadow:0px 0px 15px rgba(0,0,0,0.2); 
-                        border-radius:10px; width: 420px;">
+            <style>
+            .popup-box {
+                position: fixed;
+                top: 20%;
+                left: 50%;
+                transform: translate(-50%, -20%);
+                background-color: #ffffff;
+                border: 2px solid #ccc;
+                padding: 20px;
+                z-index: 9999;
+                box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+                border-radius: 10px;
+                width: 420px;
+                color: #000000;
+                font-family: 'Segoe UI', sans-serif;
+            }
+        
+            @media (prefers-color-scheme: dark) {
+                .popup-box {
+                    background-color: #1e1e1e;
+                    color: #ffffff;
+                    border: 1px solid #444;
+                }
+                .popup-box a {
+                    color: #4ea8ff;
+                }
+            }
+        
+            .popup-box a {
+                color: #007bff;
+                text-decoration: none;
+            }
+            .popup-box a:hover {
+                text-decoration: underline;
+            }
+            </style>
+        
+            <div class="popup-box">
                 <h3>Welcome to the Diabetes Predictor App! 👋</h3>
                 <p>This application uses a pre-trained AI model to predict a person's diabetic status based on provided health indicators.</p>
                 <p><strong>Note:</strong> The predictions made by this model are not 100% accurate. If you suspect that you may be diabetic, please seek professional medical advice.</p>
