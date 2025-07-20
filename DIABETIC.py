@@ -20,6 +20,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import base64
 import requests
+import os
 
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
