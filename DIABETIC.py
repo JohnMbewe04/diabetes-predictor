@@ -123,9 +123,15 @@ def set_background(theme):
     if theme == "Dark":
         image_path = "dark_background.jpg"
         overlay_opacity = 0.6
+        mime = "jpeg"
     else:
         image_path = "light_background.jpeg"
         overlay_opacity = 0.3
+        mime = "jpeg"
+
+    if not os.path.exists(image_path):
+        st.warning(f"Background image not found: {image_path}")
+        return
 
     # Encode image to base64
     with open(image_path, "rb") as f:
