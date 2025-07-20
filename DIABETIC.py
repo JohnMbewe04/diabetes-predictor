@@ -125,26 +125,26 @@ def set_background(theme):
         overlay_opacity = 0.2
 
     css = """
-        <style>
-        .stApp {
-            animation: fadeIn 0.8s ease-in-out;
-            background: linear-gradient(
-                rgba(0, 0, 0, {opacity}),
-                rgba(0, 0, 0, {opacity})
-            ),
-            url("{url}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            transition: background-image 0.8s ease-in-out;
-        }
+    <style>
+    .stApp {
+        animation: fadeIn 0.8s ease-in-out;
+        background: linear-gradient(
+            rgba(0, 0, 0, {opacity}),
+            rgba(0, 0, 0, {opacity})
+        ),
+        url("{url}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: background-image 0.8s ease-in-out;
+    }
 
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-        </style>
-    """.format(opacity=overlay_opacity, url=image_url)
+    @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    </style>
+    """.format(opacity=overlay_opacity, url=image_url)  # ← apply formatting here
 
     st.markdown(css, unsafe_allow_html=True)
 
