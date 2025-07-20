@@ -41,8 +41,8 @@ if not st.session_state.popup_shown:
         <style>
         .main-content-blur {
             filter: blur(6px);
+            }
             transition: filter 0.3s ease-in-out;
-        }
         </style>
     """, unsafe_allow_html=True)
 
