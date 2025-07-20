@@ -24,40 +24,30 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
-# Only show popup once
+# Session state to track popup
 if "popup_shown" not in st.session_state:
     st.session_state["popup_shown"] = False
 
+# Display popup and blur background only if not yet closed
 if not st.session_state["popup_shown"]:
-    # Full popup + close button in one HTML block
-    popup_html = """
+    # Inject styles
+    st.markdown("""
     <style>
     .popup-fade {
         animation: slideIn 0.5s ease-out;
     }
-
     @keyframes slideIn {
-        from {
-            transform: translate(-50%, -40%) scale(0.95);
-            opacity: 0;
-        }
-        to {
-            transform: translate(-50%, -20%) scale(1);
-            opacity: 1;
-        }
+        from { transform: translate(-50%, -40%) scale(0.95); opacity: 0; }
+        to { transform: translate(-50%, -20%) scale(1); opacity: 1; }
     }
-
     .overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
         backdrop-filter: blur(4px);
         background-color: rgba(0, 0, 0, 0.3);
         z-index: 998;
     }
-
     .popup-box {
         position: fixed;
         top: 20%;
@@ -71,46 +61,50 @@ if not st.session_state["popup_shown"]:
         color: #000;
         box-shadow: 0 0 20px rgba(0,0,0,0.25);
     }
-
     [data-theme="dark"] .popup-box {
         background-color: #262730;
         color: #fff;
     }
-
     .popup-box h3 {
         margin-top: 0;
     }
-
-    .close-button {
-        position: absolute;
-        top: 10px;
-        right: 12px;
-        background-color: transparent;
-        border: none;
-        color: inherit;
-        font-size: 18px;
-        cursor: pointer;
-    }
-
-    @media screen and (max-width: 500px) {
-        .popup-box {
-            width: 90%;
-        }
+    .popup-button {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
     }
     </style>
+    """, unsafe_allow_html=True)
 
-    <div class="overlay" id="overlay"></div>
-    <div class="popup-box popup-fade" id="popup">
-        <button class="close-button" onclick="document.getElementById('popup').style.display='none';document.getElementById('overlay').style.display='none';">✖</button>
+    # Blur background
+    st.markdown('<div class="overlay"></div>', unsafe_allow_html=True)
+
+    # Create popup using an HTML container
+    st.markdown("""
+    <div class="popup-box popup-fade">
         <h3>Welcome to the Diabetes Predictor App! 👋</h3>
         <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
         <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
         <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
+        <div class="popup-button">
+            <form action="" method="post">
+                <button name="close" type="submit">❌ Close</button>
+            </form>
+        </div>
     </div>
-    """
+    """, unsafe_allow_html=True)
 
-    st.markdown(popup_html, unsafe_allow_html=True)
-    st.session_state["popup_shown"] = True  # Prevent showing again
+    # Check if form was submitted
+    if st.session_state.get("close_clicked"):
+        st.session_state["popup_shown"] = True
+
+    # Hack to detect the close button via GET
+    # Use a separate Streamlit form to avoid race conditions
+    close_form = st.form("close_popup_form", clear_on_submit=True)
+    submit = close_form.form_submit_button(" ", use_container_width=True)
+    if submit:
+        st.session_state["popup_shown"] = True
+        st.session_state["close_clicked"] = True
 
 
 
