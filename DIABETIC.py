@@ -143,7 +143,7 @@ def set_background(theme):
         image_path = "dark_background.jpg"
         overlay_opacity = 0.5
     else:
-        image_path = "light_background.jpg"
+        image_path = "light_background.jpeg"
         overlay_opacity = 0.2
 
     if not os.path.exists(image_path):
