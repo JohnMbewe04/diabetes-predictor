@@ -19,6 +19,9 @@ import matplotlib.font_manager as fm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import base64
+import os
+print(os.path.exists("dark_background.jpg"))  # Should be True
+
 
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
