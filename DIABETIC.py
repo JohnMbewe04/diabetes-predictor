@@ -24,14 +24,17 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
+st.markdown(r"""
+<style>
 .popup-box {
     animation: slideIn 0.5s ease-out;
 }
-
 @keyframes slideIn {
     from { transform: translate(-50%, -40%); opacity: 0; }
     to { transform: translate(-50%, -20%); opacity: 1; }
 }
+</style>
+""", unsafe_allow_html=True)
 
 # Initialize session state to track if popup was shown
 if "popup_shown" not in st.session_state:
