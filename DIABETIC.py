@@ -121,7 +121,7 @@ def set_background(theme):
         image_url = "https://github.com/JohnMbewe04/diabetes-predictor/blob/main/dark_background.jpg"
         overlay_opacity = 0.6
     else:
-        image_url = "https://raw.githubusercontent.com/<your-username>/<your-repo>/main/light_background.jpeg"
+        image_url = "https://github.com/JohnMbewe04/diabetes-predictor/blob/main/light_background.jpeg"
         overlay_opacity = 0.2
 
     css = """
