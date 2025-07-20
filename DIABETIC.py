@@ -41,8 +41,8 @@ if not st.session_state.popup_shown:
         <style>
         .main-content-blur {
             filter: blur(6px);
-            }
             transition: filter 0.3s ease-in-out;
+        }
         </style>
     """, unsafe_allow_html=True)
 
@@ -333,6 +333,7 @@ def audio_player_ui(audio_base64, play_audio):
         </script>
         """, unsafe_allow_html=True)
 
+st.markdown('<div class="main-content-blur">', unsafe_allow_html=True)
 # ----------------------- MAIN APP -----------------------
 model = load_model()
 data = load_data()
@@ -559,5 +560,7 @@ elif st.session_state.page == "Report":
     if st.button(t("🔙 Back to Prediction", lang_code)):
         st.session_state.page = "Predict"
         st.rerun()
+        
+st.markdown('</div>', unsafe_allow_html=True)
 
 
