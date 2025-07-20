@@ -36,6 +36,16 @@ st.markdown(r"""
 </style>
 """, unsafe_allow_html=True)
 
+if not st.session_state.popup_shown:
+    st.markdown("""
+        <style>
+        .stApp {
+            filter: blur(6px);
+            transition: filter 0.3s ease-in-out;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
 # Initialize session state to track if popup was shown
 if "popup_shown" not in st.session_state:
     st.session_state.popup_shown = False
@@ -323,8 +333,6 @@ def audio_player_ui(audio_base64, play_audio):
         </script>
         """, unsafe_allow_html=True)
 
-st.markdown('<div class="blurred">', unsafe_allow_html=True)
-
 # ----------------------- MAIN APP -----------------------
 model = load_model()
 data = load_data()
@@ -551,6 +559,5 @@ elif st.session_state.page == "Report":
     if st.button(t("🔙 Back to Prediction", lang_code)):
         st.session_state.page = "Predict"
         st.rerun()
-        
-st.markdown('</div>', unsafe_allow_html=True)
+
 
