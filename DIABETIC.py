@@ -119,7 +119,7 @@ def set_background(theme):
         overlay_opacity = 0.6
     else:
         image_file = "light_background.jpeg"  # Ensure this file exists
-        overlay_opacity = 0.3
+        overlay_opacity = 0.2
 
     with open(image_file, "rb") as image:
         encoded = base64.b64encode(image.read()).decode()
