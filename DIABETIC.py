@@ -36,6 +36,10 @@ st.markdown(r"""
 </style>
 """, unsafe_allow_html=True)
 
+# Initialize session state to track if popup was shown
+if "popup_shown" not in st.session_state:
+    st.session_state.popup_shown = False
+
 if not st.session_state.popup_shown:
     st.markdown("""
         <style>
@@ -48,10 +52,6 @@ if not st.session_state.popup_shown:
     st.markdown('<div class="main-content-blur">', unsafe_allow_html=True)
 else:
     st.markdown('<div>', unsafe_allow_html=True)
-
-# Initialize session state to track if popup was shown
-if "popup_shown" not in st.session_state:
-    st.session_state.popup_shown = False
 
 # Show popup if it hasn't been closed yet
 if not st.session_state.popup_shown:
