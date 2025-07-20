@@ -55,6 +55,7 @@ else:
 
 # Show popup if it hasn't been closed yet
 if not st.session_state.get("popup_shown", False):
+    # --- Inject CSS ---
     st.markdown("""
         <style>
         .popup-box {
@@ -82,28 +83,19 @@ if not st.session_state.get("popup_shown", False):
         </style>
     """, unsafe_allow_html=True)
 
-    # Render the popup content + button using a form
-    with st.form("intro_popup"):
-        st.markdown("""
-        <div class="popup-box">
-            <h3>Welcome to the Diabetes Predictor App! 👋</h3>
-            <p>This application uses a pre-trained AI model to predict a person's diabetic status based on provided health indicators.</p>
-            <p><strong>Note:</strong> The predictions made by this model are not 100% accurate. If you suspect that you may be diabetic, please seek professional medical advice.</p>
-            <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">Find nearby diabetic clinics 🏥</a></p>
-            <br>
-            <button type="submit" style="
-                background-color: #007bff;
-                color: white;
-                padding: 10px 18px;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-            ">Close</button>
-        </div>
-        """, unsafe_allow_html=True)
+    # --- Popup content as markdown ---
+    st.markdown("""
+    <div class="popup-box">
+        <h3>Welcome to the Diabetes Predictor App! 👋</h3>
+        <p>This application uses a pre-trained AI model to predict diabetic status based on health indicators.</p>
+        <p><strong>Note:</strong> Predictions may not be 100% accurate. Please seek professional advice if needed.</p>
+        <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
+    </div>
+    """, unsafe_allow_html=True)
 
-        if st.form_submit_button("Close"):
-            st.session_state.popup_shown = True
+    # --- Close button below popup box ---
+    if st.button("❌ Close popup"):
+        st.session_state.popup_shown = True
 
 st.markdown(r"""
 <style>
