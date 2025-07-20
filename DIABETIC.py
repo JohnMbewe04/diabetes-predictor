@@ -24,22 +24,15 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
-# Session state to track popup
+# Session state to track popup visibility
 if "popup_shown" not in st.session_state:
-    st.session_state["popup_shown"] = False
+    st.session_state["popup_shown"] = True  # Show popup initially
 
-# Display popup and blur background only if not yet closed
-if not st.session_state["popup_shown"]:
-    # Inject styles
+# If popup is showing, apply blur effect and show popup
+if st.session_state["popup_shown"]:
+    # Style for blur and popup
     st.markdown("""
     <style>
-    .popup-fade {
-        animation: slideIn 0.5s ease-out;
-    }
-    @keyframes slideIn {
-        from { transform: translate(-50%, -40%) scale(0.95); opacity: 0; }
-        to { transform: translate(-50%, -20%) scale(1); opacity: 1; }
-    }
     .overlay {
         position: fixed;
         top: 0; left: 0;
@@ -70,41 +63,30 @@ if not st.session_state["popup_shown"]:
     }
     .popup-button {
         margin-top: 20px;
-        display: flex;
-        justify-content: center;
+        text-align: center;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # Blur background
+    # Display the blur overlay
     st.markdown('<div class="overlay"></div>', unsafe_allow_html=True)
 
-    # Create popup using an HTML container
+    # Show popup using HTML for layout, but Streamlit for button logic
     st.markdown("""
-    <div class="popup-box popup-fade">
+    <div class="popup-box">
         <h3>Welcome to the Diabetes Predictor App! 👋</h3>
         <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
         <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
         <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
         <div class="popup-button">
-            <form action="" method="post">
-                <button name="close" type="submit">❌ Close</button>
-            </form>
-        </div>
-    </div>
     """, unsafe_allow_html=True)
 
-    # Check if form was submitted
-    if st.session_state.get("close_clicked"):
-        st.session_state["popup_shown"] = True
+    # Streamlit button for closing
+    if st.button("❌ Close", key="close_popup"):
+        st.session_state["popup_shown"] = False
 
-    # Hack to detect the close button via GET
-    # Use a separate Streamlit form to avoid race conditions
-    close_form = st.form("close_popup_form", clear_on_submit=True)
-    submit = close_form.form_submit_button(" ", use_container_width=True)
-    if submit:
-        st.session_state["popup_shown"] = True
-        st.session_state["close_clicked"] = True
+    # Close popup-box div
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 
 
