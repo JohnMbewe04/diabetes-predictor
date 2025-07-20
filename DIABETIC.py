@@ -118,15 +118,15 @@ st.session_state["theme"] = theme
 # --- Background image and overlay
 def set_background(theme):
     if theme == "Dark":
-        image_url = "https://github.com/JohnMbewe04/diabetes-predictor/blob/main/dark_background.jpg"
+        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/dark_background.jpg"
         overlay_opacity = 0.6
     else:
-        image_url = "https://github.com/JohnMbewe04/diabetes-predictor/blob/main/light_background.jpeg"
+        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/light_background.jpeg"
         overlay_opacity = 0.2
 
     css = """
     <style>
-    .stApp {
+    .stApp {{
         animation: fadeIn 0.8s ease-in-out;
         background: linear-gradient(
             rgba(0, 0, 0, {opacity}),
@@ -137,16 +137,17 @@ def set_background(theme):
         background-position: center;
         background-repeat: no-repeat;
         transition: background-image 0.8s ease-in-out;
-    }
+    }}
 
-    @keyframes fadeIn {
-        0% { opacity: 0; }
-        100% { opacity: 1; }
-    }
+    @keyframes fadeIn {{
+        0% {{ opacity: 0; }}
+        100% {{ opacity: 1; }}
+    }}
     </style>
-    """.format(opacity=overlay_opacity, url=image_url)  # ← apply formatting here
+    """.format(opacity=overlay_opacity, url=image_url)
 
     st.markdown(css, unsafe_allow_html=True)
+
 
 
 # --- Theme-specific styling
