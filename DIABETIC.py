@@ -24,12 +24,17 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
-import streamlit as st
-
-# Animation & responsive styles
-st.markdown(r"""
+# Animation style
+st.markdown("""
 <style>
-.popup-overlay {
+.popup-fade {
+    animation: slideIn 0.5s ease-out;
+}
+@keyframes slideIn {
+    from { transform: translate(-50%, -40%) scale(0.95); opacity: 0; }
+    to { transform: translate(-50%, -20%) scale(1); opacity: 1; }
+}
+.overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -44,14 +49,13 @@ st.markdown(r"""
     top: 20%;
     left: 50%;
     transform: translate(-50%, -20%);
-    width: 450px;
-    padding: 25px;
+    width: 440px;
+    padding: 24px;
     border-radius: 12px;
     z-index: 999;
-    background-color: #ffffff;
+    background-color: #fff;
     color: #000;
-    box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    animation: fadeIn 0.4s ease-out;
+    box-shadow: 0 0 20px rgba(0,0,0,0.25);
 }
 [data-theme="dark"] .popup-box {
     background-color: #262730;
@@ -59,10 +63,6 @@ st.markdown(r"""
 }
 .popup-box h3 {
     margin-top: 0;
-}
-@keyframes fadeIn {
-    from { opacity: 0; transform: translate(-50%, -40%); }
-    to { opacity: 1; transform: translate(-50%, -20%); }
 }
 @media screen and (max-width: 500px) {
     .popup-box {
@@ -72,28 +72,42 @@ st.markdown(r"""
 </style>
 """, unsafe_allow_html=True)
 
-# Session control
+# Show popup only once
 if "popup_shown" not in st.session_state:
-    st.session_state.popup_shown = False
+    st.session_state["popup_shown"] = False
 
-# Show popup only if not dismissed
-if not st.session_state.popup_shown:
-    st.markdown('<div class="popup-overlay"></div>', unsafe_allow_html=True)
+if not st.session_state["popup_shown"]:
+    st.markdown('<div class="overlay"></div>', unsafe_allow_html=True)
 
-    # Show popup content inside Streamlit placeholder
+    # Build popup
     with st.container():
-        st.markdown('<div class="popup-box">', unsafe_allow_html=True)
-        st.markdown("### Welcome to the Diabetes Predictor App! 👋")
-        st.markdown("""
-        This application uses a pre-trained AI model to predict a person's diabetic status.
+        popup_html = """
+        <div class="popup-box popup-fade">
+            <h3>Welcome to the Diabetes Predictor App! 👋</h3>
+            <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
+            <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
+            <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
+        </div>
+        """
+        st.markdown(popup_html, unsafe_allow_html=True)
 
-        **Note:** Predictions are not medical advice. Please consult professionals when needed.
+        # Absolute-position button (rendered on top of popup with slight offset)
+        close_button_style = """
+        <style>
+        .close-button {
+            position: fixed;
+            top: calc(20% + 200px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+        </style>
+        """
+        st.markdown(close_button_style, unsafe_allow_html=True)
+        with st.container():
+            if st.button("❌ Close", key="popup_close", help="Close this popup"):
+                st.session_state.popup_shown = True
 
-        [📍 Find clinics near you](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)
-        """, unsafe_allow_html=True)
-        if st.button("❌ Close"):
-            st.session_state.popup_shown = True
-        st.markdown('</div>', unsafe_allow_html=True)
 
 
 if "play_music" not in st.session_state:
