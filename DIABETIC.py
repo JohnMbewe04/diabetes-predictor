@@ -19,6 +19,7 @@ import matplotlib.font_manager as fm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import base64
+import requests
 
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
@@ -115,29 +116,41 @@ theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
 # -- Function to apply background image based on theme
 def set_background(theme):
     if theme == "Dark":
-        image_file = "dark_background.jpg"  # Ensure this file exists
+        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/dark_background.jpg"
         overlay_opacity = 0.6
     else:
-        image_file = "light_background.jpeg"  # Ensure this file exists
+        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/light_background.jpeg"
         overlay_opacity = 0.2
 
-    with open(image_file, "rb") as image:
-        encoded = base64.b64encode(image.read()).decode()
+    try:
+        response = requests.get(image_url)
+        if response.status_code == 200:
+            encoded = base64.b64encode(response.content).decode()
 
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
-                        url("data:image/png;base64,{encoded}");
-            background-size: cover;
-            background-position: center;
-            transition: background 0.5s ease;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+            st.markdown(
+                f"""
+                <style>
+                .stApp {{
+                    animation: fadeIn 1s ease-in-out;
+                    background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
+                                url("data:image/jpeg;base64,{encoded}");
+                    background-size: cover;
+                    background-position: center;
+                    transition: background 0.8s ease-in-out;
+                }}
+
+                @keyframes fadeIn {{
+                    0% {{ opacity: 0; }}
+                    100% {{ opacity: 1; }}
+                }}
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.warning("⚠️ Could not load background image.")
+    except Exception as e:
+        st.error(f"Error loading background: {e}")
 
 # -- Function to apply custom widget and text styles
 def set_theme_styles(theme):
