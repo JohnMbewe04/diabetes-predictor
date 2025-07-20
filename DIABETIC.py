@@ -36,11 +36,13 @@ st.markdown(r"""
 </style>
 """, unsafe_allow_html=True)
 
+# Initialize popup state
 if "popup_shown" not in st.session_state:
     st.session_state["popup_shown"] = False
 
+# Only show popup once
 if not st.session_state["popup_shown"]:
-    # Inject popup styles and blur background
+    # CSS for blur + theme-aware popup
     st.markdown("""
     <style>
     .overlay {
@@ -51,54 +53,50 @@ if not st.session_state["popup_shown"]:
         height: 100vh;
         backdrop-filter: blur(4px);
         background-color: rgba(0, 0, 0, 0.3);
-        z-index: 9998;
+        z-index: 998;
     }
-
     .popup-box {
         position: fixed;
         top: 20%;
         left: 50%;
         transform: translate(-50%, -20%);
-        background-color: var(--background-color);
-        border: 2px solid #ccc;
-        padding: 25px;
-        z-index: 10000;
-        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        width: 450px;
+        padding: 20px;
         border-radius: 12px;
-        width: 440px;
-        color: var(--text-color);
-        font-family: 'Segoe UI', sans-serif;
+        z-index: 999;
+        background-color: #fff;
+        color: #000;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
     }
-
-    /* Light/Dark mode variables */
-    body[data-theme="light"] {
-        --background-color: #ffffff;
-        --text-color: #000000;
+    [data-theme="dark"] .popup-box {
+        background-color: #262730;
+        color: #fff;
     }
-    body[data-theme="dark"] {
-        --background-color: #262730;
-        --text-color: #ffffff;
+    .popup-box h3 {
+        margin-top: 0;
     }
     </style>
-
     <div class="overlay"></div>
     """, unsafe_allow_html=True)
 
-    # Render popup content (including Close button)
-    with st.container():
-        st.markdown("""
-        <div class="popup-box">
-            <h3>Welcome to the Diabetes Predictor App! 👋</h3>
-            <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
-            <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
-            <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
-        """, unsafe_allow_html=True)
+    # Create columns to center the popup button
+    col1, col2, col3 = st.columns([1, 4, 1])
+    with col2:
+        with st.container():
+            st.markdown('<div class="popup-box">', unsafe_allow_html=True)
+            st.markdown("### Welcome to the Diabetes Predictor App! 👋")
+            st.markdown("""
+            This application uses a pre-trained AI model to predict a person's diabetic status.
 
-        # Button *inside* popup
-        if st.button("❌ Close"):
-            st.session_state.popup_shown = True
+            **Note:** Predictions are not medical advice. Please consult professionals when needed.
 
-        st.markdown("</div>", unsafe_allow_html=True)
+            [📍 Find clinics near you](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)
+            """)
+            # The close button is inside the popup here
+            if st.button("❌ Close"):
+                st.session_state.popup_shown = True
+            st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 st.markdown(r"""
