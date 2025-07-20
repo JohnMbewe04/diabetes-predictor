@@ -50,7 +50,7 @@ def add_bg_with_overlay(image_file):
         </style>
     """, unsafe_allow_html=True)
 
-add_bg_with_overlay("background.png")
+add_bg_with_overlay("background.jpg")
 
 
 @lru_cache(maxsize=1000)
