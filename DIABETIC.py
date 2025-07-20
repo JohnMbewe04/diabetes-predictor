@@ -199,33 +199,36 @@ def set_theme_styles(theme):
             unsafe_allow_html=True
         )
 
-def play_background_music(file_path: str, muted: bool = False):
-    with open(file_path, "rb") as audio_file:
-        audio_bytes = audio_file.read()
-        encoded = base64.b64encode(audio_bytes).decode()
+# --- Load and encode your audio file ---
+def get_audio_base64(audio_file_path):
+    with open(audio_file_path, "rb") as f:
+        data = f.read()
+        return base64.b64encode(data).decode()
 
-    mute_str = "muted" if muted else ""
-
-    audio_html = f"""
-        <audio id="bg-music" autoplay loop {mute_str} style="display: none;">
-            <source src="data:audio/mpeg;base64,{encoded}" type="audio/mpeg">
+# --- Play or stop music using HTML/JS ---
+def audio_player_ui(audio_base64, play_audio):
+    if play_audio:
+        st.markdown(f"""
+        <audio id="bg-music" autoplay loop>
+            <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
         </audio>
         <script>
-        const audio = document.getElementById("bg-music");
-        if (audio) {{
-            {'audio.muted = true;' if muted else 'audio.muted = false;'}
-        }}
+            var music = document.getElementById("bg-music");
+            if (music) {{
+                music.play();
+            }}
         </script>
-    """
-
-    st.markdown(audio_html, unsafe_allow_html=True)
-
-
-if "mute_audio" not in st.session_state:
-    st.session_state.mute_audio = False
-
-st.session_state.mute_audio = st.sidebar.toggle("🔇", value=st.session_state.mute_audio)
-
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <script>
+            var music = document.getElementById("bg-music");
+            if (music) {
+                music.pause();
+                music.currentTime = 0;
+            }
+        </script>
+        """, unsafe_allow_html=True)
 
 # ----------------------- MAIN APP -----------------------
 
@@ -236,8 +239,18 @@ data = load_data()
 set_theme_styles(theme)
 set_background(theme)
 
-# play background music
-play_background_music("background_music.MP3", muted=st.session_state.mute_audio)
+if "play_music" not in st.session_state:
+    st.session_state.play_music = False  # default: don't play
+
+# Toggle in sidebar
+play_toggle = st.sidebar.button("▶️ Play Music" if not st.session_state.play_music else "⏹ Stop Music")
+
+if play_toggle:
+    st.session_state.play_music = not st.session_state.play_music
+
+# Load your actual file
+audio_b64 = get_audio_base64("background_music.MP3")
+audio_player_ui(audio_b64, st.session_state.play_music)
 
 # Session init
 if "page" not in st.session_state:
