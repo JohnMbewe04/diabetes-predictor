@@ -45,6 +45,9 @@ if not st.session_state.popup_shown:
         }
         </style>
     """, unsafe_allow_html=True)
+    st.markdown('<div class="main-content-blur">', unsafe_allow_html=True)
+else:
+    st.markdown('<div>', unsafe_allow_html=True)
 
 # Initialize session state to track if popup was shown
 if "popup_shown" not in st.session_state:
@@ -107,8 +110,10 @@ if not st.session_state.popup_shown:
         </div>
     """, unsafe_allow_html=True)
 
-    # Close button
-    if st.button("Close"):
+# Close button
+col1, col2 = st.columns([5, 1])
+with col2:
+    if st.button("❌"):
         st.session_state.popup_shown = True
 
 st.markdown(r"""
@@ -333,7 +338,7 @@ def audio_player_ui(audio_base64, play_audio):
         </script>
         """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-content-blur">', unsafe_allow_html=True)
+
 # ----------------------- MAIN APP -----------------------
 model = load_model()
 data = load_data()
