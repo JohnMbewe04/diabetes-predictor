@@ -39,7 +39,7 @@ st.markdown(r"""
 if not st.session_state.popup_shown:
     st.markdown("""
         <style>
-        .stApp {
+        .main-content-blur {
             filter: blur(6px);
             transition: filter 0.3s ease-in-out;
         }
