@@ -20,29 +20,6 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import base64
 
-
-def add_bg_with_overlay(image_file):
-    with open(image_file, "rb") as image:
-        encoded = base64.b64encode(image.read()).decode()
-
-    background_style = f"""
-    <style>
-    .stApp {{
-        background: 
-            linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-            url("data:image/png;base64,{encoded}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }}
-    </style>
-    """
-
-    st.markdown(background_style, unsafe_allow_html=True)
-
-add_bg_with_overlay("background.jpg")
-
-
 @lru_cache(maxsize=1000)
 def cached_translate(text, lang):
     if lang == "en":
@@ -130,6 +107,88 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     c.save()
     buffer.seek(0)
     return buffer
+
+
+# -- Theme selector
+theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
+
+# -- Function to apply background image based on theme
+def set_background(theme):
+    if theme == "Dark":
+        image_file = "dark_background.png"  # Ensure this file exists
+        overlay_opacity = 0.6
+    else:
+        image_file = "light_background.png"  # Ensure this file exists
+        overlay_opacity = 0.3
+
+    with open(image_file, "rb") as image:
+        encoded = base64.b64encode(image.read()).decode()
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
+                        url("data:image/png;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            transition: background 0.5s ease;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+# -- Function to apply custom widget and text styles
+def set_theme_styles(theme):
+    if theme == "Dark":
+        st.markdown(
+            """
+            <style>
+            html, body, [class*="st-"] {{
+                color: #ffffff;
+                background-color: #1e1e1e;
+            }}
+            .stTextInput > div > input {{
+                background-color: #2e2e2e;
+                color: white;
+            }}
+            .stRadio > div {{
+                background-color: #2e2e2e;
+                color: white;
+                padding: 0.5rem;
+                border-radius: 8px;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            """
+            <style>
+            html, body, [class*="st-"] {{
+                color: #000000;
+                background-color: #ffffff;
+            }}
+            .stTextInput > div > input {{
+                background-color: #f0f0f0;
+                color: black;
+            }}
+            .stRadio > div {{
+                background-color: #f0f0f0;
+                color: black;
+                padding: 0.5rem;
+                border-radius: 8px;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+# -- Apply styles and background
+set_theme_styles(theme)
+set_background(theme)
 
 # ----------------------- MAIN APP -----------------------
 
