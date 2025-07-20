@@ -225,9 +225,6 @@ set_background(theme)
 # play background music
 play_background_music("background_music.MP3")
 
-if st.sidebar.checkbox("🎵 Play calming music"):
-    st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", format="audio/mp3")
-
 # Session init
 if "page" not in st.session_state:
     st.session_state.page = "Predict"
