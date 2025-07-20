@@ -110,68 +110,70 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     return buffer
 
 
-# -- Theme selector
-theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
+# --- Initialize session state for theme
+if "theme" not in st.session_state:
+    st.session_state["theme"] = "Light"
 
-# -- Function to apply background image based on theme
+# --- User theme selection
+theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
+st.session_state["theme"] = theme
+
+# --- Background styling
 def set_background(theme):
     if theme == "Dark":
-        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/dark_background.jpg"
+        image_path = "dark_background.png"
         overlay_opacity = 0.6
     else:
-        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/light_background.jpeg"
-        overlay_opacity = 0.2
+        image_path = "light_background.png"
+        overlay_opacity = 0.3
 
-    try:
-        response = requests.get(image_url)
-        if response.status_code == 200:
-            encoded = base64.b64encode(response.content).decode()
+    # Encode image to base64
+    with open(image_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
 
-            st.markdown(
-                f"""
-                <style>
-                .stApp {{
-                    animation: fadeIn 1s ease-in-out;
-                    background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
-                                url("data:image/jpeg;base64,{encoded}");
-                    background-size: cover;
-                    background-position: center;
-                    transition: background 0.8s ease-in-out;
-                }}
+    # Inject custom background and fade animation
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            animation: fadeIn 1s ease-in-out;
+            background: linear-gradient(rgba(0,0,0,{overlay_opacity}), rgba(0,0,0,{overlay_opacity})),
+                        url("data:image/png;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            transition: background 0.5s ease-in-out;
+        }}
 
-                @keyframes fadeIn {{
-                    0% {{ opacity: 0; }}
-                    100% {{ opacity: 1; }}
-                }}
-                </style>
-                """,
-                unsafe_allow_html=True
-            )
-        else:
-            st.warning("⚠️ Could not load background image.")
-    except Exception as e:
-        st.error(f"Error loading background: {e}")
+        @keyframes fadeIn {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-# -- Function to apply custom widget and text styles
+# --- Theme color adjustments
 def set_theme_styles(theme):
     if theme == "Dark":
         st.markdown(
             """
             <style>
-            html, body, [class*="st-"] {{
-                color: #ffffff;
+            html, body, [class*="st-"] {
+                color: white;
                 background-color: #1e1e1e;
-            }}
-            .stTextInput > div > input {{
-                background-color: #2e2e2e;
+                transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+            }
+            .stTextInput > div > input {
+                background-color: #333;
                 color: white;
-            }}
-            .stRadio > div {{
-                background-color: #2e2e2e;
+            }
+            .stRadio > div {
+                background-color: #2c2c2c;
                 color: white;
-                padding: 0.5rem;
                 border-radius: 8px;
-            }}
+                padding: 6px;
+            }
             </style>
             """,
             unsafe_allow_html=True
@@ -180,26 +182,27 @@ def set_theme_styles(theme):
         st.markdown(
             """
             <style>
-            html, body, [class*="st-"] {{
-                color: #000000;
+            html, body, [class*="st-"] {
+                color: black;
                 background-color: #ffffff;
-            }}
-            .stTextInput > div > input {{
-                background-color: #f0f0f0;
+                transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+            }
+            .stTextInput > div > input {
+                background-color: #f2f2f2;
                 color: black;
-            }}
-            .stRadio > div {{
-                background-color: #f0f0f0;
+            }
+            .stRadio > div {
+                background-color: #f9f9f9;
                 color: black;
-                padding: 0.5rem;
                 border-radius: 8px;
-            }}
+                padding: 6px;
+            }
             </style>
             """,
             unsafe_allow_html=True
         )
 
-# -- Apply styles and background
+# --- Apply theme and background
 set_theme_styles(theme)
 set_background(theme)
 
