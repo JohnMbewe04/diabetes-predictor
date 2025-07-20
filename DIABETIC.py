@@ -21,6 +21,29 @@ from reportlab.pdfbase.ttfonts import TTFont
 import base64
 import requests
 
+if "show_intro" not in st.session_state:
+    st.session_state["show_intro"] = True
+
+if st.session_state["show_intro"]:
+    with st.container():
+        st.markdown(
+            """
+            <div style="position:fixed; top:20%; left:50%; transform:translate(-50%, -20%); background-color:white; 
+                        border:2px solid #ccc; padding:20px; z-index:9999; box-shadow:0px 0px 15px rgba(0,0,0,0.2); 
+                        border-radius:10px; width: 420px;">
+                <h3>Welcome to the Diabetes Predictor App! 👋</h3>
+                <p>This application uses a pre-trained AI model to predict a person's diabetic status based on provided health indicators.</p>
+                <p><strong>Note:</strong> The predictions made by this model are not 100% accurate. If you suspect that you may be diabetic, please seek professional medical advice.</p>
+                <p>Need assistance? <a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">Find diabetic medical facilities near you.</a></p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        if st.button("Close Message"):
+            st.session_state["show_intro"] = False
+
+
+
 if "play_music" not in st.session_state:
     st.session_state.play_music = True  # default: don't play
 
