@@ -199,19 +199,34 @@ def set_theme_styles(theme):
             unsafe_allow_html=True
         )
 
-# -- Apply styles and background
-set_theme_styles(theme)
-set_background(theme)
+def play_background_music(file_path: str):
+    with open(file_path, "rb") as audio_file:
+        audio_bytes = audio_file.read()
+        encoded = base64.b64encode(audio_bytes).decode()
 
+    audio_html = f"""
+        <audio autoplay loop controls style="position: fixed; bottom: 20px; right: 20px; z-index:999;">
+            <source src="data:audio/mp3;base64,{encoded}" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+    """
+
+    st.markdown(audio_html, unsafe_allow_html=True)
 
 # ----------------------- MAIN APP -----------------------
 
 model = load_model()
 data = load_data()
 
+# -- Apply styles and background
+set_theme_styles(theme)
+set_background(theme)
+
+# play background music
+play_background_music("background_music.mp3")
+
 if st.sidebar.checkbox("🎵 Play calming music"):
     st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", format="audio/mp3")
-
 
 # Session init
 if "page" not in st.session_state:
