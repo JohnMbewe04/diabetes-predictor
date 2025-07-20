@@ -24,83 +24,46 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
+import streamlit as st
+
+# Animation & responsive styles
 st.markdown(r"""
 <style>
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 998;
+}
 .popup-box {
-    animation: slideIn 0.5s ease-out;
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -20%);
+    width: 450px;
+    padding: 25px;
+    border-radius: 12px;
+    z-index: 999;
+    background-color: #ffffff;
+    color: #000;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    animation: fadeIn 0.4s ease-out;
 }
-@keyframes slideIn {
-    from { transform: translate(-50%, -40%); opacity: 0; }
-    to { transform: translate(-50%, -20%); opacity: 1; }
+[data-theme="dark"] .popup-box {
+    background-color: #262730;
+    color: #fff;
 }
-</style>
-""", unsafe_allow_html=True)
-
-# Initialize popup state
-if "popup_shown" not in st.session_state:
-    st.session_state["popup_shown"] = False
-
-# Only show popup once
-if not st.session_state["popup_shown"]:
-    # CSS for blur + theme-aware popup
-    st.markdown("""
-    <style>
-    .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        backdrop-filter: blur(4px);
-        background-color: rgba(0, 0, 0, 0.3);
-        z-index: 998;
-    }
-    .popup-box {
-        position: fixed;
-        top: 20%;
-        left: 50%;
-        transform: translate(-50%, -20%);
-        width: 450px;
-        padding: 20px;
-        border-radius: 12px;
-        z-index: 999;
-        background-color: #fff;
-        color: #000;
-        box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    }
-    [data-theme="dark"] .popup-box {
-        background-color: #262730;
-        color: #fff;
-    }
-    .popup-box h3 {
-        margin-top: 0;
-    }
-    </style>
-    <div class="overlay"></div>
-    """, unsafe_allow_html=True)
-
-    # Create columns to center the popup button
-    col1, col2, col3 = st.columns([1, 4, 1])
-    with col2:
-        with st.container():
-            st.markdown('<div class="popup-box">', unsafe_allow_html=True)
-            st.markdown("### Welcome to the Diabetes Predictor App! 👋")
-            st.markdown("""
-            This application uses a pre-trained AI model to predict a person's diabetic status.
-
-            **Note:** Predictions are not medical advice. Please consult professionals when needed.
-
-            [📍 Find clinics near you](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)
-            """)
-            # The close button is inside the popup here
-            if st.button("❌ Close"):
-                st.session_state.popup_shown = True
-            st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-st.markdown(r"""
-<style>
+.popup-box h3 {
+    margin-top: 0;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to { opacity: 1; transform: translate(-50%, -20%); }
+}
 @media screen and (max-width: 500px) {
     .popup-box {
         width: 90%;
@@ -108,6 +71,30 @@ st.markdown(r"""
 }
 </style>
 """, unsafe_allow_html=True)
+
+# Session control
+if "popup_shown" not in st.session_state:
+    st.session_state.popup_shown = False
+
+# Show popup only if not dismissed
+if not st.session_state.popup_shown:
+    st.markdown('<div class="popup-overlay"></div>', unsafe_allow_html=True)
+
+    # Show popup content inside Streamlit placeholder
+    with st.container():
+        st.markdown('<div class="popup-box">', unsafe_allow_html=True)
+        st.markdown("### Welcome to the Diabetes Predictor App! 👋")
+        st.markdown("""
+        This application uses a pre-trained AI model to predict a person's diabetic status.
+
+        **Note:** Predictions are not medical advice. Please consult professionals when needed.
+
+        [📍 Find clinics near you](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)
+        """, unsafe_allow_html=True)
+        if st.button("❌ Close"):
+            st.session_state.popup_shown = True
+        st.markdown('</div>', unsafe_allow_html=True)
+
 
 if "play_music" not in st.session_state:
     st.session_state.play_music = True  # default: don't play
