@@ -159,7 +159,7 @@ def set_theme_styles(theme):
             """
             <style>
             html, body, [class*="st-"] {{
-                color: #ffffff;
+                color: #f8f9fa;
                 background-color: #1e1e1e;
             }}
             .stTextInput > div > input {{
@@ -243,7 +243,9 @@ if "play_music" not in st.session_state:
     st.session_state.play_music = False  # default: don't play
 
 # Toggle in sidebar
-play_toggle = st.sidebar.button("▶️ Play Music" if not st.session_state.play_music else "⏹ Stop Music")
+music_play_label = "▶️ " + t("Play Music", lang_code)
+music_stop_label = "⏹ " + t("Stop Music", lang_code)
+play_toggle = st.sidebar.button(music_play_label if not st.session_state.play_music else music_stop_label)
 
 if play_toggle:
     st.session_state.play_music = not st.session_state.play_music
@@ -324,10 +326,6 @@ if st.session_state.page == "Predict":
     
     # Compute MAP
     bp = (2 * diastolic + systolic) / 3
-
-
-
-    
     bmi = st.number_input(t("BMI", lang_code), 10.0, 50.0, 25.0)
     age = st.number_input(t("Age", lang_code), 1, 100, 30)
 
@@ -344,8 +342,20 @@ if st.session_state.page == "Predict":
             "Age": age
         }
         result = t("Diabetic", lang_code) if prediction == 1 else t("Not Diabetic", lang_code)
-        st.success(f"{t('Prediction', lang_code)}: {result}")
-        st.info(f"{t('Confidence', lang_code)}: {st.session_state.confidence}%")
+        st.markdown(f"""
+            <div style="
+                background-color: rgba(255, 255, 255, 0.85);
+                padding: 1rem;
+                border-radius: 10px;
+                color: black;
+                font-weight: bold;
+                font-size: 18px;
+                margin-top: 10px;
+            ">
+                ✅ {t('Prediction', lang_code)}: {result}<br>
+                📊 {t('Confidence', lang_code)}: {st.session_state.confidence}%
+            </div>
+        """, unsafe_allow_html=True)
 
     if st.session_state.prediction is not None:
         col1, col2 = st.columns(2)
