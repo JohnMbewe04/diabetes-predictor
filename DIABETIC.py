@@ -108,92 +108,85 @@ def generate_pdf_report(user_data, prediction, confidence, health_tips, data, us
     buffer.seek(0)
     return buffer
 
-# --- Theme selector
-if "theme" not in st.session_state:
-    st.session_state["theme"] = "Light"
 
+# -- Theme selector
 theme = st.radio("Choose Theme", ["Light", "Dark"], horizontal=True)
-st.session_state["theme"] = theme
 
-# --- Background image and overlay
+# -- Function to apply background image based on theme
 def set_background(theme):
     if theme == "Dark":
-        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/dark_background.jpg"
+        image_file = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/dark_background.jpg"  # Ensure this file exists
         overlay_opacity = 0.6
     else:
-        image_url = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/light_background.jpeg"
+        image_file = "https://raw.githubusercontent.com/JohnMbewe04/diabetes-predictor/main/light_background.jpeg"  # Ensure this file exists
         overlay_opacity = 0.2
 
-    css = """
-    <style>
-    .stApp {{
-        animation: fadeIn 0.8s ease-in-out;
-        background: linear-gradient(
-            rgba(0, 0, 0, {opacity}),
-            rgba(0, 0, 0, {opacity})
-        ),
-        url("{url}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        transition: background-image 0.8s ease-in-out;
-    }}
+    with open(image_file, "rb") as image:
+        encoded = base64.b64encode(image.read()).decode()
 
-    @keyframes fadeIn {{
-        0% {{ opacity: 0; }}
-        100% {{ opacity: 1; }}
-    }}
-    </style>
-    """.format(opacity=overlay_opacity, url=image_url)
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background: linear-gradient(rgba(0, 0, 0, {overlay_opacity}), rgba(0, 0, 0, {overlay_opacity})),
+                        url("data:image/png;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            transition: background 0.5s ease;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-    st.markdown(css, unsafe_allow_html=True)
-
-
-
-# --- Theme-specific styling
+# -- Function to apply custom widget and text styles
 def set_theme_styles(theme):
     if theme == "Dark":
-        st.markdown("""
+        st.markdown(
+            """
             <style>
-            html, body, [class*="st-"] {
+            html, body, [class*="st-"] {{
                 color: #ffffff;
                 background-color: #1e1e1e;
-                transition: background-color 0.5s ease;
-            }
-            .stTextInput > div > input {
+            }}
+            .stTextInput > div > input {{
                 background-color: #2e2e2e;
                 color: white;
-            }
-            .stRadio > div {
+            }}
+            .stRadio > div {{
                 background-color: #2e2e2e;
                 color: white;
                 padding: 0.5rem;
                 border-radius: 8px;
-            }
+            }}
             </style>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
     else:
-        st.markdown("""
+        st.markdown(
+            """
             <style>
-            html, body, [class*="st-"] {
+            html, body, [class*="st-"] {{
                 color: #000000;
                 background-color: #ffffff;
-                transition: background-color 0.5s ease;
-            }
-            .stTextInput > div > input {
+            }}
+            .stTextInput > div > input {{
                 background-color: #f0f0f0;
                 color: black;
-            }
-            .stRadio > div {
+            }}
+            .stRadio > div {{
                 background-color: #f0f0f0;
                 color: black;
                 padding: 0.5rem;
                 border-radius: 8px;
-            }
+            }}
             </style>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
 
-# --- Apply styles and background
+# -- Apply styles and background
 set_theme_styles(theme)
 set_background(theme)
 
