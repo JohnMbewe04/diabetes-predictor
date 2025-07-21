@@ -35,45 +35,37 @@ if st.query_params.get("popup_closed") == ["1"]:
 
 # 3) Render popup & overlay if not yet shown
 if not st.session_state.popup_shown:
-    st.markdown(f"""
+    st.markdown("""
     <style>
-      .overlay {{
-        position: fixed;
-        top: 0; left: 0;
-        width: 100vw;  height: 100vh;
+      .overlay {
+        position: fixed; top:0; left:0;
+        width:100vw; height:100vh;
         backdrop-filter: blur(4px);
         background: rgba(0,0,0,0.3);
         z-index: 998;
-      }}
-      .welcome-popup {{
-        position: fixed;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        max-width: 400px; width: 90%;
-        padding: 2rem;
-        background: #fff;
-        color: #000;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        z-index: 999;
-        text-align: center;
-      }}
-      [data-theme="dark"] .welcome-popup {{
-        background: #262730; color: #fff;
-      }}
-      .btn-close {{
-        display: inline-block;
-        margin-top: 1.5rem;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        background: #007bff;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 4px;
-      }}
-      .btn-close:hover {{
-        background: #0056b3;
-      }}
+      }
+      .welcome-popup {
+        position: fixed; top:50%; left:50%;
+        transform: translate(-50%,-50%);
+        max-width:400px; width:90%;
+        padding:2rem;
+        background:#fff; color:#000;
+        border-radius:8px;
+        box-shadow:0 4px 20px rgba(0,0,0,0.2);
+        z-index:999;
+        text-align:center;
+      }
+      [data-theme="dark"] .welcome-popup {
+        background:#262730; color:#fff;
+      }
+      .btn-close {
+        display:inline-block; margin-top:1.5rem;
+        padding:.5rem 1rem; font-size:1rem;
+        background:#007bff; color:#fff;
+        text-decoration:none; border-radius:4px;
+        cursor:pointer;
+      }
+      .btn-close:hover { background:#0056b3; }
     </style>
 
     <div class="overlay"></div>
@@ -81,13 +73,18 @@ if not st.session_state.popup_shown:
       <h3>👋 Welcome to Diabetes Predictor!</h3>
       <p>We use a pre-trained AI model to estimate diabetic risk from your health markers.</p>
       <p><strong>Not medical advice.</strong> Please consult a professional if needed.</p>
-      <p>
-        <a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me"
-           target="_blank">📍 Find nearby clinics</a>
-      </p>
+      <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me"
+            target="_blank">📍 Find nearby clinics</a></p>
 
-      <!-- THIS LINK DOES THE “CLOSE” WORK -->
-      <a href="?popup_closed=1" class="btn-close">Close</a>
+      <!-- This “Close” never navigates away -->
+      <a href="#" class="btn-close"
+         onclick="
+           window.history.replaceState({}, '', window.location.pathname + '?popup_closed=1');
+           window.location.reload();
+           return false;
+         ">
+        Close
+      </a>
     </div>
     """, unsafe_allow_html=True)
 
