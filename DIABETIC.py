@@ -24,13 +24,16 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
-# Session state to track popup visibility
-if "popup_shown" not in st.session_state:
-    st.session_state["popup_shown"] = True  # Show popup initially
+import streamlit as st
 
-# If popup is showing, apply blur effect and show popup
-if st.session_state["popup_shown"]:
-    # Style for blur and popup
+# Session state to control popup visibility
+if "popup_shown" not in st.session_state:
+    st.session_state.popup_shown = False
+if "hide_popup" not in st.session_state:
+    st.session_state.hide_popup = False
+
+# Only show the popup if it hasn't been hidden
+if not st.session_state.hide_popup:
     st.markdown("""
     <style>
     .overlay {
@@ -53,40 +56,70 @@ if st.session_state["popup_shown"]:
         background-color: #fff;
         color: #000;
         box-shadow: 0 0 20px rgba(0,0,0,0.25);
+        text-align: center;
     }
     [data-theme="dark"] .popup-box {
         background-color: #262730;
         color: #fff;
     }
-    .popup-box h3 {
-        margin-top: 0;
-    }
-    .popup-button {
+    .popup-box button {
         margin-top: 20px;
-        text-align: center;
+        padding: 8px 16px;
+        font-size: 16px;
+        border: none;
+        background-color: #f63366;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .popup-box button:hover {
+        background-color: #c42e54;
+    }
+    @keyframes slideIn {
+        from { transform: translate(-50%, -40%) scale(0.95); opacity: 0; }
+        to { transform: translate(-50%, -20%) scale(1); opacity: 1; }
+    }
+    .popup-fade {
+        animation: slideIn 0.5s ease-out;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # Display the blur overlay
     st.markdown('<div class="overlay"></div>', unsafe_allow_html=True)
 
-    # Show popup using HTML for layout, but Streamlit for button logic
-    st.markdown("""
-    <div class="popup-box">
+    # Popup content + Close button embedded
+    popup_html = """
+    <div class="popup-box popup-fade">
         <h3>Welcome to the Diabetes Predictor App! 👋</h3>
         <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
         <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
         <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
-        <div class="popup-button">
-    """, unsafe_allow_html=True)
+        <form action="" method="post">
+            <button name="close_popup">❌ Close</button>
+        </form>
+    </div>
+    """
+    st.markdown(popup_html, unsafe_allow_html=True)
 
-    # Streamlit button for closing
-    if st.button("❌ Close", key="close_popup"):
-        st.session_state["popup_shown"] = False
+# Process form submission to close popup
+if st.session_state.get("close_popup_clicked"):
+    st.session_state.hide_popup = True
 
-    # Close popup-box div
-    st.markdown("</div></div>", unsafe_allow_html=True)
+# JavaScript to submit the form and notify Streamlit
+st.markdown("""
+<script>
+const form = document.querySelector('form');
+if (form) {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch('', {method: 'POST'})
+      .then(() => {
+        window.location.reload();
+      });
+  });
+}
+</script>
+""", unsafe_allow_html=True)
 
 
 
