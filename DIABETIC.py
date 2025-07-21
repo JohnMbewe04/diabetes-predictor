@@ -23,83 +23,52 @@ import requests
 
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
-    
-# initialize
-if "popup_shown" not in st.session_state:
-    st.session_state.popup_shown = False
 
-# read & clear
-if st.query_params.get("popup_closed") == ["1"]:
-    st.session_state.popup_shown = True
-    st.set_query_params()  # wipe it out so it doesn’t fire again
-
-# 3) Render popup & overlay if not yet shown
-if not st.session_state.popup_shown:
-    st.markdown("""
+# --- Footer CSS ---
+st.markdown(
+    """
     <style>
-      .overlay {
-        position: fixed; top:0; left:0;
-        width:100vw; height:100vh;
-        backdrop-filter: blur(4px);
-        background: rgba(0,0,0,0.3);
-        z-index: 998;
-      }
-      .welcome-popup {
-        position: fixed; top:50%; left:50%;
-        transform: translate(-50%,-50%);
-        max-width:400px; width:90%;
-        padding:2rem;
-        background:#fff; color:#000;
-        border-radius:8px;
-        box-shadow:0 4px 20px rgba(0,0,0,0.2);
-        z-index:999;
-        text-align:center;
-      }
-      [data-theme="dark"] .welcome-popup {
-        background:#262730; color:#fff;
-      }
-      .btn-close {
-        display:inline-block; margin-top:1.5rem;
-        padding:.5rem 1rem; font-size:1rem;
-        background:#007bff; color:#fff;
-        text-decoration:none; border-radius:4px;
-        cursor:pointer;
-      }
-      .btn-close:hover { background:#0056b3; }
+    .app-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.9);
+        color: #333;
+        text-align: center;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        z-index: 1000;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+    [data-theme="dark"] .app-footer {
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #ddd;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+    }
+    .app-footer a {
+        color: inherit;
+        text-decoration: underline;
+        font-weight: bold;
+    }
     </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-    <div class="overlay"></div>
-    <div class="welcome-popup">
-      <h3>👋 Welcome to Diabetes Predictor!</h3>
-      <p>We use a pre-trained AI model to estimate diabetic risk from your health markers.</p>
-      <p><strong>Not medical advice.</strong> Please consult a professional if needed.</p>
-      <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me"
-            target="_blank">📍 Find nearby clinics</a></p>
-
-      <!-- This “Close” never navigates away -->
-      <a href="#" class="btn-close"
-         onclick="
-           window.history.replaceState({}, '', window.location.pathname + '?popup_closed=1');
-           window.location.reload();
-           return false;
-         ">
-        Close
+# --- Footer HTML ---
+st.markdown(
+    """
+    <div class="app-footer">
+      👋 Welcome to the Diabetes Predictor App!  
+      Predictions are not medical advice.  
+      <a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">
+        Find nearby clinics
       </a>
     </div>
-    """, unsafe_allow_html=True)
-
-# 2) Wrap your app content in a blur container
-if not st.session_state.popup_shown:
-    st.markdown("""
-      <style>
-        .app-blur {
-          filter: blur(4px) brightness(0.85);
-          transition: filter 0.3s ease-in-out;
-        }
-      </style>
-      <div class="app-blur">
-    """, unsafe_allow_html=True)
-
+    """,
+    unsafe_allow_html=True,
+)
 
 
 if "play_music" not in st.session_state:
@@ -541,11 +510,6 @@ elif st.session_state.page == "Report":
     if st.button(t("🔙 Back to Prediction", lang_code)):
         st.session_state.page = "Predict"
         st.rerun()
-        
-#st.markdown('</div>', unsafe_allow_html=True)
-# 3) Close the blur wrapper after all your UI
-if not st.session_state.popup_shown:
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 
