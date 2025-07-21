@@ -24,57 +24,56 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
     
-
-# 1) Initialize flag in session state
+# initialize
 if "popup_shown" not in st.session_state:
     st.session_state.popup_shown = False
 
-# 2) Read query params with the new API
-params = st.query_params
-if params.get("popup_closed") == ["1"]:
+# read & clear
+if st.query_params.get("popup_closed") == ["1"]:
     st.session_state.popup_shown = True
-    # Clear the query so it doesn’t persist on future reloads
-    st.set_query_params()
+    st.set_query_params()  # wipe it out so it doesn’t fire again
 
 # 3) Render popup & overlay if not yet shown
 if not st.session_state.popup_shown:
-    st.markdown("""
+    st.markdown(f"""
     <style>
-      .overlay {
-        position: fixed; top: 0; left: 0;
-        width: 100vw; height: 100vh;
+      .overlay {{
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;  height: 100vh;
         backdrop-filter: blur(4px);
         background: rgba(0,0,0,0.3);
         z-index: 998;
-      }
-      .welcome-popup {
+      }}
+      .welcome-popup {{
         position: fixed;
         top: 50%; left: 50%;
         transform: translate(-50%, -50%);
         max-width: 400px; width: 90%;
         padding: 2rem;
-        background: #ffffff; color: #000;
+        background: #fff;
+        color: #000;
         border-radius: 8px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         z-index: 999;
         text-align: center;
-      }
-      [data-theme="dark"] .welcome-popup {
+      }}
+      [data-theme="dark"] .welcome-popup {{
         background: #262730; color: #fff;
-      }
-      .welcome-popup button {
+      }}
+      .btn-close {{
+        display: inline-block;
         margin-top: 1.5rem;
         padding: 0.5rem 1rem;
         font-size: 1rem;
-        border: none;
         background: #007bff;
         color: #fff;
+        text-decoration: none;
         border-radius: 4px;
-        cursor: pointer;
-      }
-      .welcome-popup button:hover {
+      }}
+      .btn-close:hover {{
         background: #0056b3;
-      }
+      }}
     </style>
 
     <div class="overlay"></div>
@@ -86,24 +85,24 @@ if not st.session_state.popup_shown:
         <a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me"
            target="_blank">📍 Find nearby clinics</a>
       </p>
-      <button id="close-btn">Close</button>
-    </div>
 
-    <script>
-      document.getElementById("close-btn").onclick = () => {
-        const url = new URL(window.location);
-        url.searchParams.set("popup_closed", "1");
-        window.history.replaceState({}, "", url);
-        window.location.reload();
-      }
-    </script>
+      <!-- THIS LINK DOES THE “CLOSE” WORK -->
+      <a href="?popup_closed=1" class="btn-close">Close</a>
+    </div>
     """, unsafe_allow_html=True)
 
 # 2) Wrap your app content in a blur container
 if not st.session_state.popup_shown:
-    st.markdown("""<style>
-      .app-blur { filter: blur(4px) brightness(0.85); transition: filter 0.3s ease; }
-    </style><div class="app-blur">""", unsafe_allow_html=True)
+    st.markdown("""
+      <style>
+        .app-blur {
+          filter: blur(4px) brightness(0.85);
+          transition: filter 0.3s ease-in-out;
+        }
+      </style>
+      <div class="app-blur">
+    """, unsafe_allow_html=True)
+
 
 
 if "play_music" not in st.session_state:
