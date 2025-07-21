@@ -24,17 +24,13 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
-import streamlit as st
 
-# Session state to control popup visibility
-if "popup_shown" not in st.session_state:
-    st.session_state.popup_shown = False
-if "hide_popup" not in st.session_state:
-    st.session_state.hide_popup = False
+# State to control visibility
+if "show_popup" not in st.session_state:
+    st.session_state.show_popup = True
 
-# Only show the popup if it hasn't been hidden
-if not st.session_state.hide_popup:
-    st.markdown("""
+# CSS styles for popup and background blur
+st.markdown("""
     <style>
     .overlay {
         position: fixed;
@@ -62,64 +58,45 @@ if not st.session_state.hide_popup:
         background-color: #262730;
         color: #fff;
     }
-    .popup-box button {
+    .popup-button {
         margin-top: 20px;
-        padding: 8px 16px;
+        padding: 10px 20px;
         font-size: 16px;
-        border: none;
         background-color: #f63366;
         color: white;
+        border: none;
         border-radius: 8px;
         cursor: pointer;
     }
-    .popup-box button:hover {
+    .popup-button:hover {
         background-color: #c42e54;
     }
-    @keyframes slideIn {
-        from { transform: translate(-50%, -40%) scale(0.95); opacity: 0; }
-        to { transform: translate(-50%, -20%) scale(1); opacity: 1; }
-    }
-    .popup-fade {
-        animation: slideIn 0.5s ease-out;
-    }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
+# Display popup if state is True
+if st.session_state.show_popup:
     st.markdown('<div class="overlay"></div>', unsafe_allow_html=True)
 
-    # Popup content + Close button embedded
-    popup_html = """
-    <div class="popup-box popup-fade">
-        <h3>Welcome to the Diabetes Predictor App! 👋</h3>
-        <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
-        <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
-        <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
-        <form action="" method="post">
-            <button name="close_popup">❌ Close</button>
-        </form>
-    </div>
-    """
-    st.markdown(popup_html, unsafe_allow_html=True)
+    # Create a placeholder to hold the popup content
+    popup = st.empty()
 
-# Process form submission to close popup
-if st.session_state.get("close_popup_clicked"):
-    st.session_state.hide_popup = True
+    with popup.container():
+        st.markdown('<div class="popup-box">', unsafe_allow_html=True)
+        st.markdown("### Welcome to the Diabetes Predictor App! 👋", unsafe_allow_html=True)
+        st.markdown("This application uses a pre-trained AI model to predict a person's diabetic status.")
+        st.markdown("**Note:** Predictions are not medical advice. Please consult professionals.")
+        st.markdown('[📍 Find clinics near you](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)', unsafe_allow_html=True)
 
-# JavaScript to submit the form and notify Streamlit
-st.markdown("""
-<script>
-const form = document.querySelector('form');
-if (form) {
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('', {method: 'POST'})
-      .then(() => {
-        window.location.reload();
-      });
-  });
-}
-</script>
-""", unsafe_allow_html=True)
+        # This is the working close button
+        if st.button("❌ Close", key="close_popup"):
+            st.session_state.show_popup = False
+            popup.empty()
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# Your main app content starts here
+
 
 
 
