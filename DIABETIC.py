@@ -23,9 +23,7 @@ import requests
 
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
-
-import streamlit as st
-
+    
 # 1) Initialize our “shown” flag
 if "popup_shown" not in st.session_state:
     st.session_state.popup_shown = False
