@@ -35,76 +35,46 @@ if params.get("popup_closed") == ["1"]:
     # clear it so future reloads don’t keep the flag
     st.experimental_set_query_params()
 
+# 1) Popup logic (do this first)
 if not st.session_state.popup_shown:
-    st.markdown(
-        """
-        <style>
-        /* blur the entire app shell */
-        .stApp {
-            filter: blur(4px) brightness(0.85);
-            transition: filter 0.3s ease-in-out;
-        }
-        /* popup styling */
-        .welcome-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            max-width: 400px;
-            width: 90%;
-            padding: 2rem;
-            background: #ffffff;
-            color: #000;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            z-index: 999;
-            text-align: center;
-        }
-        [data-theme="dark"] .welcome-popup {
-            background: #262730;
-            color: #fff;
-        }
-        .welcome-popup button {
-            margin-top: 1.5rem;
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            border: none;
-            background: #007bff;
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .welcome-popup button:hover {
-            background: #0056b3;
-        }
-        </style>
-
-        <div class="welcome-popup">
-            <h3>👋 Welcome to Diabetes Predictor!</h3>
-            <p>We use a pre-trained AI model to estimate diabetic risk from your health markers.</p>
-            <p><strong>Not medical advice.</strong> If you’re concerned, please consult a professional.</p>
-            <p>
-              <a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me"
-                 target="_blank">
-                📍 Find nearby clinics
-              </a>
-            </p>
-            <button id="close">Close</button>
-        </div>
-
-        <script>
+    st.markdown("""<style>
+      /* Popup & overlay CSS (same as before) */
+      .overlay { position: fixed; top:0; left:0; width:100vw; height:100vh;
+                 backdrop-filter: blur(4px); background: rgba(0,0,0,0.3); z-index:998; }
+      .welcome-popup { position: fixed; top:50%; left:50%; transform: translate(-50%,-50%);
+                       max-width:400px; width:90%; padding:2rem; background:#fff; color:#000;
+                       border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.2); z-index:999;
+                       text-align:center; }
+      [data-theme="dark"] .welcome-popup { background:#262730; color:#fff; }
+      .welcome-popup button { margin-top:1.5rem; padding:.5rem 1rem; font-size:1rem;
+                              border:none; background:#007bff; color:#fff; border-radius:4px;
+                              cursor:pointer; }
+      .welcome-popup button:hover { background:#0056b3; }
+      </style>
+      <div class="overlay"></div>
+      <div class="welcome-popup">
+        <h3>👋 Welcome to Diabetes Predictor!</h3>
+        <p>We use a pre-trained AI model to estimate diabetic risk from your health markers.</p>
+        <p><strong>Not medical advice.</strong> Please consult a professional if needed.</p>
+        <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me"
+              target="_blank">📍 Find nearby clinics</a></p>
+        <button id="close">Close</button>
+      </div>
+      <script>
         document.getElementById("close").onclick = () => {
           const url = new URL(window.location);
           url.searchParams.set("popup_closed", "1");
           window.history.replaceState({}, "", url);
           window.location.reload();
         }
-        </script>
-        """,
-        unsafe_allow_html=True,
-    )
+      </script>
+    """, unsafe_allow_html=True)
 
-
+# 2) Wrap your app content in a blur container
+if not st.session_state.popup_shown:
+    st.markdown("""<style>
+      .app-blur { filter: blur(4px) brightness(0.85); transition: filter 0.3s ease; }
+    </style><div class="app-blur">""", unsafe_allow_html=True)
 
 
 if "play_music" not in st.session_state:
@@ -548,5 +518,9 @@ elif st.session_state.page == "Report":
         st.rerun()
         
 #st.markdown('</div>', unsafe_allow_html=True)
+# 3) Close the blur wrapper after all your UI
+if not st.session_state.popup_shown:
+    st.markdown("</div>", unsafe_allow_html=True)
+
 
 
