@@ -24,78 +24,87 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
-# 1) Initialize state
+import streamlit as st
+
+# 1) Initialize our “shown” flag
 if "popup_shown" not in st.session_state:
     st.session_state.popup_shown = False
 
-# 2) If our URL has ?close_popup=1, mark the popup hidden
+# 2) Detect our “?popup_closed=1” query param and persist it
 params = st.experimental_get_query_params()
-if params.get("close_popup") == ["1"]:
+if params.get("popup_closed") == ["1"]:
     st.session_state.popup_shown = True
-    # clear the query so refreshing doesn’t re-hide things
+    # clear it so future reloads don’t keep the flag
     st.experimental_set_query_params()
 
 if not st.session_state.popup_shown:
-    st.markdown("""
-    <style>
-      .overlay {
-        position: fixed; top:0; left:0;
-        width:100vw; height:100vh;
-        backdrop-filter: blur(4px);
-        background: rgba(0,0,0,0.3);
-        z-index: 998;
-      }
-      .popup-box {
-        position: fixed;
-        top: 20%; left: 50%;
-        transform: translate(-50%, -20%);
-        width: 440px;
-        padding: 24px;
-        border-radius: 12px;
-        background-color: #fff;
-        box-shadow: 0 0 20px rgba(0,0,0,0.25);
-        text-align: center;
-        z-index: 999;
-      }
-      [data-theme="dark"] .popup-box {
-        background-color: #262730; color: #fff;
-      }
-      .popup-box button {
-        margin-top: 20px;
-        padding: 8px 16px;
-        font-size: 16px;
-        background: #f63366;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-      .popup-box button:hover {
-        background: #c42e54;
-      }
-    </style>
-    <div class="overlay"></div>
-    <div class="popup-box popup-fade">
-      <h3>Welcome to the Diabetes Predictor App! 👋</h3>
-      <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
-      <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
-      <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
-      <!-- our close button adds a query param and reloads -->
-      <button id="close-popup-btn">❌ Close</button>
-    </div>
+    st.markdown(
+        """
+        <style>
+        /* blur the entire app shell */
+        .stApp {
+            filter: blur(4px) brightness(0.85);
+            transition: filter 0.3s ease-in-out;
+        }
+        /* popup styling */
+        .welcome-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 400px;
+            width: 90%;
+            padding: 2rem;
+            background: #ffffff;
+            color: #000;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 999;
+            text-align: center;
+        }
+        [data-theme="dark"] .welcome-popup {
+            background: #262730;
+            color: #fff;
+        }
+        .welcome-popup button {
+            margin-top: 1.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: none;
+            background: #007bff;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .welcome-popup button:hover {
+            background: #0056b3;
+        }
+        </style>
 
-    <script>
-      const btn = document.getElementById("close-popup-btn");
-      if (btn) {
-        btn.addEventListener("click", () => {
-          // append ?close_popup=1 then reload
-          const href = window.location.origin + window.location.pathname + "?close_popup=1";
-          window.history.pushState({}, "", href);
+        <div class="welcome-popup">
+            <h3>👋 Welcome to Diabetes Predictor!</h3>
+            <p>We use a pre-trained AI model to estimate diabetic risk from your health markers.</p>
+            <p><strong>Not medical advice.</strong> If you’re concerned, please consult a professional.</p>
+            <p>
+              <a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me"
+                 target="_blank">
+                📍 Find nearby clinics
+              </a>
+            </p>
+            <button id="close">Close</button>
+        </div>
+
+        <script>
+        document.getElementById("close").onclick = () => {
+          const url = new URL(window.location);
+          url.searchParams.set("popup_closed", "1");
+          window.history.replaceState({}, "", url);
           window.location.reload();
-        });
-      }
-    </script>
-    """, unsafe_allow_html=True)
+        }
+        </script>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 
