@@ -24,79 +24,78 @@ import requests
 if "show_intro" not in st.session_state:
     st.session_state["show_intro"] = True
 
+# 1) Initialize state
+if "popup_shown" not in st.session_state:
+    st.session_state.popup_shown = False
 
-# State to control visibility
-if "show_popup" not in st.session_state:
-    st.session_state.show_popup = True
+# 2) If our URL has ?close_popup=1, mark the popup hidden
+params = st.experimental_get_query_params()
+if params.get("close_popup") == ["1"]:
+    st.session_state.popup_shown = True
+    # clear the query so refreshing doesn’t re-hide things
+    st.experimental_set_query_params()
 
-# CSS styles for popup and background blur
-st.markdown("""
+if not st.session_state.popup_shown:
+    st.markdown("""
     <style>
-    .overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100vw; height: 100vh;
+      .overlay {
+        position: fixed; top:0; left:0;
+        width:100vw; height:100vh;
         backdrop-filter: blur(4px);
-        background-color: rgba(0, 0, 0, 0.3);
+        background: rgba(0,0,0,0.3);
         z-index: 998;
-    }
-    .popup-box {
+      }
+      .popup-box {
         position: fixed;
-        top: 20%;
-        left: 50%;
+        top: 20%; left: 50%;
         transform: translate(-50%, -20%);
         width: 440px;
         padding: 24px;
         border-radius: 12px;
-        z-index: 999;
         background-color: #fff;
-        color: #000;
         box-shadow: 0 0 20px rgba(0,0,0,0.25);
         text-align: center;
-    }
-    [data-theme="dark"] .popup-box {
-        background-color: #262730;
-        color: #fff;
-    }
-    .popup-button {
+        z-index: 999;
+      }
+      [data-theme="dark"] .popup-box {
+        background-color: #262730; color: #fff;
+      }
+      .popup-box button {
         margin-top: 20px;
-        padding: 10px 20px;
+        padding: 8px 16px;
         font-size: 16px;
-        background-color: #f63366;
-        color: white;
+        background: #f63366;
+        color: #fff;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-    }
-    .popup-button:hover {
-        background-color: #c42e54;
-    }
+      }
+      .popup-box button:hover {
+        background: #c42e54;
+      }
     </style>
-""", unsafe_allow_html=True)
+    <div class="overlay"></div>
+    <div class="popup-box popup-fade">
+      <h3>Welcome to the Diabetes Predictor App! 👋</h3>
+      <p>This application uses a pre-trained AI model to predict a person's diabetic status.</p>
+      <p><strong>Note:</strong> Predictions are not medical advice. Please consult professionals when needed.</p>
+      <p><a href="https://www.google.com/maps/search/diabetic+medical+facilities+near+me" target="_blank">📍 Find clinics near you</a></p>
+      <!-- our close button adds a query param and reloads -->
+      <button id="close-popup-btn">❌ Close</button>
+    </div>
 
-# Display popup if state is True
-if st.session_state.show_popup:
-    st.markdown('<div class="overlay"></div>', unsafe_allow_html=True)
-
-    # Create a placeholder to hold the popup content
-    popup = st.empty()
-
-    with popup.container():
-        st.markdown('<div class="popup-box">', unsafe_allow_html=True)
-        st.markdown("### Welcome to the Diabetes Predictor App! 👋", unsafe_allow_html=True)
-        st.markdown("This application uses a pre-trained AI model to predict a person's diabetic status.")
-        st.markdown("**Note:** Predictions are not medical advice. Please consult professionals.")
-        st.markdown('[📍 Find clinics near you](https://www.google.com/maps/search/diabetic+medical+facilities+near+me)', unsafe_allow_html=True)
-
-        # This is the working close button
-        if st.button("❌ Close", key="close_popup"):
-            st.session_state.show_popup = False
-            popup.empty()
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# Your main app content starts here
-
+    <script>
+      const btn = document.getElementById("close-popup-btn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          // append ?close_popup=1 then reload
+          const href = window.location.origin + window.location.pathname + "?close_popup=1";
+          window.history.pushState({}, "", href);
+          window.location.reload();
+        });
+      }
+    </script>
+    """, unsafe_allow_html=True)
 
 
 
@@ -541,6 +540,6 @@ elif st.session_state.page == "Report":
         st.session_state.page = "Predict"
         st.rerun()
         
-st.markdown('</div>', unsafe_allow_html=True)
+#st.markdown('</div>', unsafe_allow_html=True)
 
 
